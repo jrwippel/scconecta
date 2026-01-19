@@ -1,0 +1,29 @@
+name: scconecta_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '^3.9.0' # Certifique-se de que há 2 espaços antes de "sdk"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: 0.20.2
+  table_calendar: ^3.1.0
+  google_fonts: ^7.0.2
+  cupertino_icons: ^1.0.8
+  device_info_plus: ^12.3.0
+  http: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
