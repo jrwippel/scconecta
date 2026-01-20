@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Importante para o nome dinâmico
-import '../services/currency_service.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/currency_service.dart';
+import '../screens/meus_pedidos_screen.dart'; // Certifique-se de importar a nova tela
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String? userName; // Transformado em opcional
+  final String? userName;
   final VoidCallback onLogout;
   final VoidCallback? onCartClick;
   final int cartCount;
-  
+
   final CurrencyService _currencyService = CurrencyService();
 
   CustomAppBar({
     super.key,
-    this.userName, // Opcional agora
+    this.userName,
     required this.onLogout,
     this.onCartClick,
     this.cartCount = 0,
@@ -25,9 +26,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     const Color verdeOliva = Color(0xFFABC33E);
 
-    // Lógica para pegar o nome caso não tenha sido passado via parâmetro
     final User? user = FirebaseAuth.instance.currentUser;
-    final String nomeParaExibir = userName ?? user?.displayName ?? user?.email?.split('@')[0] ?? "Viajante";
+    final String nomeParaExibir =
+        userName ?? user?.displayName ?? user?.email?.split('@')[0] ?? "Viajante";
 
     return AppBar(
       backgroundColor: Colors.white,
@@ -39,13 +40,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Row(
             children: [
-              const Text("Olá, ", style: TextStyle(color: Colors.black54, fontSize: 11)),
+              const Text("Olá, ",
+                  style: TextStyle(color: Colors.black54, fontSize: 11)),
               Expanded(
                 child: Text(
-                  nomeParaExibir, 
+                  nomeParaExibir,
                   style: const TextStyle(
-                    color: Colors.black, 
-                    fontSize: 13, 
+                    color: Colors.black,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -58,11 +60,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             future: _currencyService.fetchDollarRate(),
             builder: (context, snapshot) {
               double valor = (snapshot.hasData) ? snapshot.data! : 0.0;
-              String valorFormatado = valor.toStringAsFixed(2).replaceAll('.', ',');
+              String valorFormatado =
+                  valor.toStringAsFixed(2).replaceAll('.', ',');
               return Row(
                 children: [
-                  Text("USD 1 | R\$ $valorFormatado", 
-                    style: const TextStyle(color: verdeOliva, fontSize: 10, fontWeight: FontWeight.w600)),
+                  Text("USD 1 | R\$ $valorFormatado",
+                      style: const TextStyle(
+                          color: verdeOliva,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600)),
                   const SizedBox(width: 4),
                   const Icon(Icons.info_outline, size: 12, color: verdeOliva),
                 ],
@@ -72,37 +78,61 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        const VerticalDivider(indent: 15, endIndent: 15, width: 10, color: Colors.black12),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: SizedBox(
-            width: 55,
-            child: ElevatedButton(
-              onPressed: onLogout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: verdeOliva,
-                foregroundColor: Colors.black,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: EdgeInsets.zero,
-              ),
-              child: const Text("Sair", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-            ),
-          ),
-        ),
+        // ÍCONE DO CARRINHO (Mantido como ação principal)
         GestureDetector(
           onTap: onCartClick,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
+            alignment: Alignment.center,
             child: Badge(
               backgroundColor: Colors.red,
-              label: Text('$cartCount', style: const TextStyle(fontSize: 9, color: Colors.white)),
+              label: Text('$cartCount',
+                  style: const TextStyle(fontSize: 9, color: Colors.white)),
               isLabelVisible: cartCount > 0,
-              child: const Icon(Icons.shopping_cart_outlined, color: verdeOliva, size: 22),
+              child: const Icon(Icons.shopping_cart_outlined,
+                  color: verdeOliva, size: 24),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+
+        // MENU DE 3 PONTINHOS (Substituindo o botão Sair direto)
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, color: Colors.black54),
+          padding: EdgeInsets.zero,
+          onSelected: (value) {
+            if (value == 'pedidos') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MeusPedidosScreen()),
+              );
+            } else if (value == 'sair') {
+              onLogout();
+            }
+          },
+          itemBuilder: (BuildContext context) => [
+            PopupMenuItem(
+              value: 'pedidos',
+              child: Row(
+                children: [
+                  Icon(Icons.assignment_outlined, color: verdeOliva, size: 20),
+                  const SizedBox(width: 10),
+                  const Text("Meus Pedidos", style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'sair',
+              child: Row(
+                children: [
+                  Icon(Icons.logout, color: Colors.redAccent, size: 20),
+                  const SizedBox(width: 10),
+                  Text("Sair", style: TextStyle(color: Colors.redAccent, fontSize: 14)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 4),
       ],
     );
   }

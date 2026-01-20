@@ -331,15 +331,24 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
     );
   }
 
-  void _mostrarSucesso() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
-        content: const Text("Pagamento realizado com sucesso!", textAlign: TextAlign.center),
-        actions: [TextButton(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/landing', (route) => false), child: const Text("VOLTAR AO INÍCIO"))],
-      ),
-    );
-  }
+void _mostrarSucesso() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+      content: const Text("Pagamento realizado com sucesso!", textAlign: TextAlign.center),
+      actions: [
+        TextButton(
+          onPressed: () {
+            // ESTA É A FORMA MAIS SEGURA:
+            // Remove todas as telas da memória e volta para a primeira tela definida no seu main.dart
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          child: const Text("VOLTAR AO INÍCIO"),
+        )
+      ],
+    ),
+  );
+}
 }
