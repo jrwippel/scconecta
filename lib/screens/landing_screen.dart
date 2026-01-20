@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
 import '../main.dart';
 import 'selecao_plano_screen.dart';
 import '../widgets/custom_app_bar.dart';
@@ -21,6 +22,10 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // BUSCA O USUÁRIO LOGADO
+    final User? user = FirebaseAuth.instance.currentUser;
+    final String nomeParaExibir = user?.displayName ?? user?.email?.split('@')[0] ?? "Usuário";
+
     String textoData = "Data inicial — Data final";
     if (_rangeStart != null && _rangeEnd != null) {
       final df = DateFormat("EEE, d 'de' MMM", 'pt_BR');
@@ -29,8 +34,12 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        userName: "Jackson Ricardo", 
-        onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+        userName: nomeParaExibir, // NOME DINÂMICO AQUI
+        onLogout: () async {
+          await FirebaseAuth.instance.signOut();
+          if (!mounted) return;
+          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+        },
       ),
       backgroundColor: verdeFundo,
       body: SingleChildScrollView(
@@ -102,80 +111,59 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
                   const SizedBox(height: 20),
                   
                   SizedBox(
-  width: double.infinity,
-  height: 55,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: verdePrincipal,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 0,
-    ),
-    onPressed: () {
-      // Verifica se as datas foram selecionadas antes de navegar
-      if (_rangeStart != null && _rangeEnd != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (c) => SelecaoPlanoScreen(
-              dataInicio: _rangeStart, // Passa a data de início
-              dataFim: _rangeEnd,     // Passa a data de fim
-            ),
-          ),
-        );
-      } else {
-        // Opcional: Alerta caso o usuário não tenha escolhido as datas
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Por favor, selecione o período da viagem no calendário.")),
-        );
-      }
-    },
-    child: const Text(
-      "Ativar meu chip agora",
-      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-    ),
-  ),
-),
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: verdePrincipal,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        if (_rangeStart != null && _rangeEnd != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (c) => SelecaoPlanoScreen(
+                                dataInicio: _rangeStart,
+                                dataFim: _rangeEnd,
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Por favor, selecione o período da viagem no calendário.")),
+                          );
+                        }
+                      },
+                      child: const Text("Ativar meu chip agora",
+                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
                 ],
               ),
             ),
-
-            // Imagem Principal da Moça (Centralizada e escala reduzida)
             Center(
               child: Image.asset(
-                'assets/images/mulher_viagem.png', //
+                'assets/images/mulher_viagem.png',
                 height: 160,
                 fit: BoxFit.contain,
               ),
             ),
-
             const SizedBox(height: 20),
-
-            Text("Nossos Planos", 
-              style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 18)),
-
+            Text("Nossos Planos", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 15),
-
-            // --- CARROSSEL COM NOMES E VALORES ---
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
                   const SizedBox(width: 25),
-                  _buildCardPlano(
-                    'assets/images/plano-america.png', 
-                    'Plano América', 
-                    'USD\$ 29,00'
-                  ),
-                  _buildCardPlano(
-                    'assets/images/plano-mundo.png', 
-                    'Plano Mundo', 
-                    'USD\$ 39,00'
-                  ),
+                  _buildCardPlano('assets/images/plano-america.png', 'Plano América', 'USD\$ 29,00'),
+                  _buildCardPlano('assets/images/plano-mundo.png', 'Plano Mundo', 'USD\$ 39,00'),
                   const SizedBox(width: 25),
                 ],
               ),
             ),
-            
             const SizedBox(height: 40),
           ],
         ),
@@ -183,43 +171,20 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
     );
   }
 
-  // Função para criar o card com imagem, nome e valor abaixo
   Widget _buildCardPlano(String imagePath, String nome, String preco) {
     return Container(
       width: 160,
       margin: const EdgeInsets.only(right: 15),
       child: Column(
         children: [
-          // Imagem do Plano
           ClipRRect(
             borderRadius: BorderRadius.circular(15),
-            child: Image.asset(
-              imagePath, //
-              height: 110,
-              width: 160,
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset(imagePath, height: 110, width: 160, fit: BoxFit.cover),
           ),
           const SizedBox(height: 10),
-          // Nome do Plano
-          Text(
-            nome,
-            style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-          // Valor "A partir de"
-          Text(
-            "A partir de",
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-          ),
-          Text(
-            preco,
-            style: GoogleFonts.montserrat(
-              fontWeight: FontWeight.w800, 
-              fontSize: 15, 
-              color: verdePrincipal
-            ),
-          ),
+          Text(nome, style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14), textAlign: TextAlign.center),
+          Text("A partir de", style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+          Text(preco, style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 15, color: verdePrincipal)),
         ],
       ),
     );

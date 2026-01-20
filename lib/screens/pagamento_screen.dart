@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../main.dart'; 
 import '../widgets/custom_app_bar.dart'; 
 import 'selecao_plano_screen.dart'; // Onde estão CartService e CartItem
+import '../services/cart_service.dart';
+
 
 class PagamentoScreen extends StatefulWidget {
   final double valorTotal;
@@ -18,6 +20,7 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
   bool aceitouTermos = false;
   bool cartaoTerceiro = false;
   final double taxaCambio = 5.58;
+
 
   @override
   Widget build(BuildContext context) {

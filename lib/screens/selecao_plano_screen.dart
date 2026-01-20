@@ -6,40 +6,11 @@ import 'dart:io';
 import '../main.dart'; 
 import 'pagamento_screen.dart'; 
 import '../widgets/custom_app_bar.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-// --- MODELO DO ITEM DO CARRINHO ---
-class CartItem {
-  final String plano;
-  final String tipo; 
-  final String datas;
-  final int quantidade;
-  final double precoFinalCalculado; 
-  final int totalDias;
+import '../services/cart_service.dart';
 
-  CartItem({
-    required this.plano,
-    required this.tipo,
-    required this.datas,
-    required this.quantidade,
-    required this.precoFinalCalculado,
-    required this.totalDias,
-  });
-}
-
-// --- CLASSE SERVICE (SINGLETON) ---
-class CartService {
-  static final CartService _instance = CartService._internal();
-  factory CartService() => _instance;
-  CartService._internal();
-
-  List<CartItem> itens = [];
-  int tempEsim = 0;
-  int tempChip = 0;
-
-  int get totalItens => itens.fold(0, (sum, item) => sum + item.quantidade);
-  
-  double get totalGeralUsd => itens.fold(0, (sum, item) => sum + (item.precoFinalCalculado * item.quantidade));
-}
 
 class SelecaoPlanoScreen extends StatefulWidget {
   final DateTime? dataInicio;
@@ -53,7 +24,6 @@ class SelecaoPlanoScreen extends StatefulWidget {
 
 class _SelecaoPlanoScreenState extends State<SelecaoPlanoScreen> {
   final cart = CartService();
-
   String planoAtivo = "América";
   bool mostrarVantagens = true;
   double precoBase = 29.0;
@@ -77,6 +47,58 @@ class _SelecaoPlanoScreenState extends State<SelecaoPlanoScreen> {
     _verificarSuporteEsim();
     cart.tempEsim = 0;
     cart.tempChip = 0;
+  }
+
+  Future<void> _finalizarPedidoNoFirebase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(color: verdePrincipal)),
+    );
+
+    try {
+      List<Map<String, dynamic>> itensData = cart.itens.map((item) => {
+        'plano': item.plano,
+        'tipo': item.tipo,
+        'datas': item.datas,
+        'quantidade': item.quantidade,
+        'precoUsd': item.precoFinalCalculado,
+        'totalDias': item.totalDias,
+      }).toList();
+
+      final userDoc = await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
+      String nomeUsuario = userDoc.data()?['nome'] ?? user.displayName ?? "Usuário Desconhecido";
+
+      await FirebaseFirestore.instance.collection('pedidos').add({
+        'userId': user.uid,
+        'userEmail': user.email,
+        'userName': nomeUsuario,
+        'dataPedido': FieldValue.serverTimestamp(),
+        'itens': itensData,
+        'totalGeralUsd': cart.totalGeralUsd,
+        'status': 'Pendente',
+      });
+
+      if (mounted) {
+        Navigator.pop(context); 
+        double valorParaPagar = cart.totalGeralUsd; 
+        
+        setState(() {
+          cart.itens.clear(); 
+        });
+
+        Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (c) => PagamentoScreen(valorTotal: valorParaPagar))
+        );
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e")));
+    }
   }
 
   Future<void> _verificarSuporteEsim() async {
@@ -536,7 +558,8 @@ class _SelecaoPlanoScreenState extends State<SelecaoPlanoScreen> {
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                     onPressed: () {
                       Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (c) => PagamentoScreen(valorTotal: totalUsd)));
+                      //Navigator.push(context, MaterialPageRoute(builder: (c) => PagamentoScreen(valorTotal: totalUsd)));
+                      _finalizarPedidoNoFirebase();
                     },
                     child: const Text("Finalizar compra", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   ),

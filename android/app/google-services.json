@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852419966817",
+    "project_id": "scconecta-app",
+    "storage_bucket": "scconecta-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852419966817:android:c35aae0db4ae0de77c3720",
+        "android_client_info": {
+          "package_name": "com.example.scconecta_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuwumVznuj2yjJB9YHf1_Zspc6IHafQWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
