@@ -5,6 +5,9 @@ import '../widgets/custom_app_bar.dart';
 import 'selecao_plano_screen.dart'; // Onde estão CartService e CartItem
 import '../services/cart_service.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class PagamentoScreen extends StatefulWidget {
   final double valorTotal;
@@ -21,16 +24,52 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
   bool cartaoTerceiro = false;
   final double taxaCambio = 5.58;
 
+  // Nova variável para o nome dinâmico
+  String nomeExibicao = "Carregando...";
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarNomeUsuario(); // Busca o nome assim que a tela inicia
+  }
+
+  Future<void> _carregarNomeUsuario() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Busca no Firestore exatamente como você planejou na tela de seleção
+        final userDoc = await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(user.uid)
+            .get();
+
+        if (mounted) {
+          setState(() {
+            nomeExibicao = userDoc.data()?['nome'] ?? user.displayName ?? "Usuário";
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => nomeExibicao = "Usuário");
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
+
+// --- LÓGICA IGUAL À LANDING PAGE ---
+  final User? user = FirebaseAuth.instance.currentUser;
+  final String nomeParaExibir = user?.displayName ?? user?.email?.split('@')[0] ?? "Usuário";
+  // -----------------------------------
+
     double valorBrl = widget.valorTotal * taxaCambio;
     const Color verdeBorda = Color(0xFFABC33E); 
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        userName: "Jackson Ricardo", 
+      appBar: CustomAppBar(      
+        userName: nomeParaExibir,
         onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
         cartCount: cart.totalItens, 
         onCartClick: () => _abrirCarrinhoResumo(), 

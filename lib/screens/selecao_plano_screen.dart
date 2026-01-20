@@ -154,10 +154,17 @@ class _SelecaoPlanoScreenState extends State<SelecaoPlanoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // --- LÓGICA IGUAL À LANDING PAGE ---
+    final User? user = FirebaseAuth.instance.currentUser;
+    final String nomeParaExibir = user?.displayName ?? user?.email?.split('@')[0] ?? "Usuário";
+  // -----------------------------------
+
+
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        userName: "Jackson Ricardo", 
+        userName: nomeParaExibir, 
         onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
         cartCount: cart.totalItens, 
         onCartClick: () => _abrirCarrinho(), 
