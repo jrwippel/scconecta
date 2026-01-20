@@ -49,57 +49,65 @@ class _SelecaoPlanoScreenState extends State<SelecaoPlanoScreen> {
     cart.tempChip = 0;
   }
 
-  Future<void> _finalizarPedidoNoFirebase() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+ Future<void> _finalizarPedidoNoFirebase() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: verdePrincipal)),
-    );
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(child: CircularProgressIndicator(color: verdePrincipal)),
+  );
 
-    try {
-      List<Map<String, dynamic>> itensData = cart.itens.map((item) => {
-        'plano': item.plano,
-        'tipo': item.tipo,
-        'datas': item.datas,
-        'quantidade': item.quantidade,
-        'precoUsd': item.precoFinalCalculado,
-        'totalDias': item.totalDias,
-      }).toList();
+  try {
+    List<Map<String, dynamic>> itensData = cart.itens.map((item) => {
+      'plano': item.plano,
+      'tipo': item.tipo,
+      'datas': item.datas,
+      'quantidade': item.quantidade,
+      'precoUsd': item.precoFinalCalculado,
+      'totalDias': item.totalDias,
+    }).toList();
 
-      final userDoc = await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
-      String nomeUsuario = userDoc.data()?['nome'] ?? user.displayName ?? "Usuário Desconhecido";
+    final userDoc = await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
+    String nomeUsuario = userDoc.data()?['nome'] ?? user.displayName ?? "Usuário Desconhecido";
 
-      await FirebaseFirestore.instance.collection('pedidos').add({
-        'userId': user.uid,
-        'userEmail': user.email,
-        'userName': nomeUsuario,
-        'dataPedido': FieldValue.serverTimestamp(),
-        'itens': itensData,
-        'totalGeralUsd': cart.totalGeralUsd,
-        'status': 'Pendente',
+    // 1. Guardamos a referência do documento criado
+    DocumentReference docRef = await FirebaseFirestore.instance.collection('pedidos').add({
+      'userId': user.uid,
+      'userEmail': user.email,
+      'userName': nomeUsuario,
+      'dataPedido': FieldValue.serverTimestamp(),
+      'itens': itensData,
+      'totalGeralUsd': cart.totalGeralUsd,
+      'status': 'Pendente',
+    });
+
+    if (mounted) {
+      Navigator.pop(context); 
+      double valorParaPagar = cart.totalGeralUsd; 
+      
+      // Capturamos o ID gerado pelo Firebase
+      String idDoPedidoCriado = docRef.id;
+
+      setState(() {
+        cart.itens.clear(); 
       });
 
-      if (mounted) {
-        Navigator.pop(context); 
-        double valorParaPagar = cart.totalGeralUsd; 
-        
-        setState(() {
-          cart.itens.clear(); 
-        });
-
-        Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (c) => PagamentoScreen(valorTotal: valorParaPagar))
-        );
-      }
-    } catch (e) {
-      if (mounted) Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e")));
+      // 2. Enviamos o ID para a tela de pagamento
+      Navigator.push(
+        context, 
+        MaterialPageRoute(builder: (c) => PagamentoScreen(
+          valorTotal: valorParaPagar, 
+          pedidoId: idDoPedidoCriado, // Novo parâmetro
+        ))
+      );
     }
+  } catch (e) {
+    if (mounted) Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e")));
   }
+}
 
   Future<void> _verificarSuporteEsim() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();

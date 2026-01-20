@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../main.dart'; 
-import '../widgets/custom_app_bar.dart'; 
-import 'selecao_plano_screen.dart'; // Onde estão CartService e CartItem
-import '../services/cart_service.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import '../main.dart'; 
+import '../widgets/custom_app_bar.dart'; 
+import '../services/cart_service.dart';
+import '../screens/landing_screen.dart'; 
 
 class PagamentoScreen extends StatefulWidget {
   final double valorTotal;
-  const PagamentoScreen({super.key, required this.valorTotal});
+  final String pedidoId; 
+
+  const PagamentoScreen({
+    super.key, 
+    required this.valorTotal, 
+    required this.pedidoId
+  });
 
   @override
   State<PagamentoScreen> createState() => _PagamentoScreenState();
@@ -19,50 +24,80 @@ class PagamentoScreen extends StatefulWidget {
 
 class _PagamentoScreenState extends State<PagamentoScreen> {
   final cart = CartService();
+  
+  // 1. CONTROLLERS PARA CAPTURA DE DADOS
+  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _whatsappController = TextEditingController();
+  final TextEditingController _nomeCartaoController = TextEditingController();
+  final TextEditingController _numeroCartaoController = TextEditingController();
+
+  // 2. CONFIGURAÇÃO DAS MÁSCARAS
+  final maskCpf = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')});
+  final maskWhatsapp = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')});
+  final maskCartao = MaskTextInputFormatter(mask: '#### #### #### ####', filter: {"#": RegExp(r'[0-9]')});
+  final maskValidade = MaskTextInputFormatter(mask: '##/##', filter: {"#": RegExp(r'[0-9]')});
+  final maskCvv = MaskTextInputFormatter(mask: '###', filter: {"#": RegExp(r'[0-9]')});
+
   String metodoPaga = "Cartão"; 
   bool aceitouTermos = false;
   bool cartaoTerceiro = false;
   final double taxaCambio = 5.58;
 
-  // Nova variável para o nome dinâmico
-  String nomeExibicao = "Carregando...";
-
   @override
-  void initState() {
-    super.initState();
-    _carregarNomeUsuario(); // Busca o nome assim que a tela inicia
+  void dispose() {
+    _cpfController.dispose();
+    _whatsappController.dispose();
+    _nomeCartaoController.dispose();
+    _numeroCartaoController.dispose();
+    super.dispose();
   }
 
-  Future<void> _carregarNomeUsuario() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Busca no Firestore exatamente como você planejou na tela de seleção
-        final userDoc = await FirebaseFirestore.instance
-            .collection('usuarios')
-            .doc(user.uid)
-            .get();
+  // 3. FUNÇÃO PRINCIPAL: GRAVAR NO FIREBASE
+  Future<void> _processarPagamento() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-        if (mounted) {
-          setState(() {
-            nomeExibicao = userDoc.data()?['nome'] ?? user.displayName ?? "Usuário";
-          });
-        }
+    if (_cpfController.text.length < 14 || _whatsappController.text.length < 14) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor, preencha CPF e WhatsApp corretamente.")),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFFABC33E))),
+    );
+
+    try {
+      // ATUALIZA O PEDIDO EXISTENTE
+      await FirebaseFirestore.instance
+          .collection('pedidos')
+          .doc(widget.pedidoId)
+          .update({
+        'status': 'Pago',
+        'metodoPagamento': metodoPaga,
+        'cpfCliente': _cpfController.text, 
+        'whatsappCliente': _whatsappController.text, 
+        'dataConfirmacaoPagamento': FieldValue.serverTimestamp(),
+        'valorFinalPago': widget.valorTotal,
+      });
+
+      if (mounted) {
+        Navigator.pop(context); 
+        _mostrarSucesso();
       }
     } catch (e) {
-      if (mounted) setState(() => nomeExibicao = "Usuário");
+      if (mounted) Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red));
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-
-// --- LÓGICA IGUAL À LANDING PAGE ---
-  final User? user = FirebaseAuth.instance.currentUser;
-  final String nomeParaExibir = user?.displayName ?? user?.email?.split('@')[0] ?? "Usuário";
-  // -----------------------------------
-
+    final User? user = FirebaseAuth.instance.currentUser;
+    final String nomeParaExibir = user?.displayName ?? user?.email?.split('@')[0] ?? "Usuário";
     double valorBrl = widget.valorTotal * taxaCambio;
     const Color verdeBorda = Color(0xFFABC33E); 
 
@@ -93,22 +128,18 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
                   _buildAbas(),
                   const SizedBox(height: 25),
                   
-                  // Campos de Identificação
+                  // CAMPOS DE IDENTIFICAÇÃO (CONECTADOS)
                   Row(
                     children: [
-                      Expanded(child: _field("Informe o seu CPF", "000.000.000-00")),
+                      Expanded(child: _field("Informe o seu CPF", "000.000.000-00", controller: _cpfController, mask: maskCpf)),
                       const SizedBox(width: 15),
-                      Expanded(child: _field("WhatsApp", "(00) 00000-0000")),
+                      Expanded(child: _field("WhatsApp", "(00) 00000-0000", controller: _whatsappController, mask: maskWhatsapp)),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    "Os dados do pedido serão enviados para o e-mail associado ao seu CPF.",
-                    style: TextStyle(fontSize: 9, color: Colors.black54),
-                  ),
+                  const Text("Os dados do pedido serão enviados para o e-mail associado ao seu CPF.", style: TextStyle(fontSize: 9, color: Colors.black54)),
                   const SizedBox(height: 20),
 
-                  // Lógica de Campos Dinâmicos
                   if (metodoPaga == "Cartão") 
                     _buildConteudoCartao(valorBrl, verdeBorda)
                   else 
@@ -123,10 +154,7 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text("Total a pagar", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(
-                        "USD\$ ${widget.valorTotal.toStringAsFixed(2)}", 
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 22, color: Colors.black)
-                      ),
+                      Text("USD\$ ${widget.valorTotal.toStringAsFixed(2)}", style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 22, color: Colors.black)),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -142,34 +170,49 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
     );
   }
 
-  // --- CONTEÚDO ESPECÍFICO DO CARTÃO ---
+  // WIDGET DE CAMPO REUTILIZÁVEL (IMPORTANTE: AGORA COM CONTROLLER)
+  Widget _field(String l, String h, {TextEditingController? controller, MaskTextInputFormatter? mask}) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(l, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 6),
+      SizedBox(
+        height: 45,
+        child: TextField(
+          controller: controller,
+          inputFormatters: mask != null ? [mask] : [],
+          keyboardType: mask != null ? TextInputType.number : TextInputType.text,
+          decoration: InputDecoration(
+            hintText: h,
+            hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+        ),
+      ),
+    ],
+  );
+
   Widget _buildConteudoCartao(double valorBrl, Color verdeBorda) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            SizedBox(
-              height: 24, width: 24,
-              child: Checkbox(
-                value: cartaoTerceiro, 
-                activeColor: verdeBorda,
-                onChanged: (v) => setState(() => cartaoTerceiro = v!),
-              ),
-            ),
+            SizedBox(height: 24, width: 24, child: Checkbox(value: cartaoTerceiro, activeColor: verdeBorda, onChanged: (v) => setState(() => cartaoTerceiro = v!))),
             const Text(" Pagamento com cartão de terceiro", style: TextStyle(fontSize: 11)),
           ],
         ),
         const SizedBox(height: 15),
-        _field("Número do cartão", "0000 0000 0000 0000"),
+        _field("Número do cartão", "0000 0000 0000 0000", controller: _numeroCartaoController, mask: maskCartao),
         const SizedBox(height: 12),
-        _field("Nome como no cartão", "NOME IMPRESSO"),
+        _field("Nome como no cartão", "NOME IMPRESSO", controller: _nomeCartaoController),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(flex: 2, child: _field("Validade", "MM/AA")),
+            Expanded(flex: 2, child: _field("Validade", "MM/AA", mask: maskValidade)),
             const SizedBox(width: 10),
-            Expanded(flex: 1, child: _field("CVV", "000")),
+            Expanded(flex: 1, child: _field("CVV", "000", mask: maskCvv)),
           ],
         ),
         const SizedBox(height: 15),
@@ -184,7 +227,6 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
     );
   }
 
-  // --- CONTEÚDO ESPECÍFICO DO PIX ---
   Widget _buildConteudoPix(double valorBrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,26 +240,6 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
     );
   }
 
-  // --- MÉTODOS AUXILIARES DE UI ---
-  Widget _field(String l, String h) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(l, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 6),
-      SizedBox(
-        height: 45,
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: h,
-            hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-        ),
-      ),
-    ],
-  );
-
   Widget _fieldCupom() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -225,25 +247,11 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
       const SizedBox(height: 6),
       Container(
         height: 45,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFABC33E)),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFABC33E)), borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
-            const Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "CUPOM",
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text("Aplicar", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
-            ),
+            const Expanded(child: TextField(decoration: InputDecoration(hintText: "CUPOM", border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 10)))),
+            TextButton(onPressed: () {}, child: const Text("Aplicar", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12))),
           ],
         ),
       ),
@@ -263,13 +271,7 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text("USD\$ ${widget.valorTotal.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            Row(
-              children: [
-                const Icon(Icons.flag, size: 14, color: Colors.green),
-                const SizedBox(width: 4),
-                Text("R\$ ${brl.toStringAsFixed(2)}", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
-              ],
-            ),
+            Row(children: [const Icon(Icons.flag, size: 14, color: Colors.green), const SizedBox(width: 4), Text("R\$ ${brl.toStringAsFixed(2)}", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87))])
           ],
         ),
       ),
@@ -279,23 +281,36 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
   Widget _dropdownParcelas() => Container(
     height: 45,
     padding: const EdgeInsets.symmetric(horizontal: 12),
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey.shade400),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        isExpanded: true,
-        value: "1",
-        items: const [DropdownMenuItem(value: "1", child: Text("1x sem juros", style: TextStyle(fontSize: 13)))],
-        onChanged: (v) {},
-      ),
-    ),
+    decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
+    child: DropdownButtonHideUnderline(child: DropdownButton<String>(isExpanded: true, value: "1", items: const [DropdownMenuItem(value: "1", child: Text("1x sem juros", style: TextStyle(fontSize: 13)))], onChanged: (v) {}))
   );
 
-  // --- LOGICA DO CARRINHO (BOTTOM SHEET) ---
+  Widget _buildBreadcrumb(Color verde) => Row(children: [GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.home_outlined, size: 18, color: Color(0xFFABC33E))), const Icon(Icons.chevron_right, size: 14, color: Colors.grey), Text("Pagamento", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w500))]);
+  
+  Widget _buildAbas() => Container(
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(color: const Color(0xFFF2F4E8), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFABC33E).withOpacity(0.5))),
+    child: Row(children: [_payTab("Cartão de crédito", Icons.credit_card, metodoPaga == "Cartão"), _payTab("Pix", Icons.pix, metodoPaga == "Pix")])
+  );
+
+  Widget _payTab(String t, IconData i, bool s) => Expanded(
+    child: GestureDetector(
+      onTap: () => setState(() => metodoPaga = t.contains("Pix") ? "Pix" : "Cartão"),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(color: s ? const Color(0xFFABC33E) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(i, size: 16, color: s ? Colors.white : Colors.black54), const SizedBox(width: 8), Text(t, style: TextStyle(color: s ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 13))])
+      )
+    )
+  );
+
+  Widget _checkboxTermos(Color c) => Row(children: [SizedBox(height: 24, width: 24, child: Checkbox(value: aceitouTermos, activeColor: c, onChanged: (v) => setState(() => aceitouTermos = v!))), const Expanded(child: Text(" Li e concordo com os Termos de Uso.", style: TextStyle(fontSize: 11, decoration: TextDecoration.underline)))]);
+  
+  Widget _botaoFinalizar(Color c) => SizedBox(width: double.infinity, height: 52, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.white, side: BorderSide(color: c, width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), elevation: 0), onPressed: aceitouTermos ? _processarPagamento : null, child: Text(metodoPaga == "Pix" ? "GERAR QR CODE PIX" : "REALIZAR PAGAMENTO", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14))));
+  
+  Widget _seloSeguranca() => const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.security, size: 14, color: Colors.grey), SizedBox(width: 5), Text("Pagamento processado em ambiente seguro", style: TextStyle(fontSize: 10, color: Colors.grey))]);
+
   void _abrirCarrinhoResumo() {
-    if (cart.itens.isEmpty) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -306,76 +321,25 @@ class _PagamentoScreenState extends State<PagamentoScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Resumo do Pedido", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold)),
-                IconButton(icon: const Icon(Icons.close, color: Color(0xFFABC33E)), onPressed: () => Navigator.pop(context)),
-              ],
-            ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text("Resumo", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold)), IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context))]),
+            Expanded(child: ListView.builder(itemCount: cart.itens.length, itemBuilder: (c, i) => ListTile(title: Text(cart.itens[i].plano), trailing: Text("USD\$ ${cart.itens[i].precoFinalCalculado}")))),
             const Divider(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: cart.itens.length,
-                itemBuilder: (context, index) {
-                  final item = cart.itens[index];
-                  return ListTile(
-                    leading: Icon(item.tipo == "eSIM" ? Icons.qr_code_2 : Icons.sim_card_outlined, color: const Color(0xFFABC33E)),
-                    title: Text("Plano ${item.plano}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text("${item.quantidade}x ${item.tipo} - ${item.totalDias} dias"),
-                    trailing: Text("USD\$ ${(item.precoFinalCalculado * item.quantidade).toStringAsFixed(2)}"),
-                  );
-                },
-              ),
-            ),
-            const Divider(),
-            _botaoFinalizarCarrinho(),
+            SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25))), onPressed: () => Navigator.pop(context), child: const Text("VOLTAR", style: TextStyle(color: Colors.white))))
           ],
         ),
       ),
     );
   }
 
-  // --- OUTROS WIDGETS ---
-  Widget _buildBreadcrumb(Color verde) => Row(
-    children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.home_outlined, size: 18, color: Color(0xFFABC33E))),
-      const Icon(Icons.chevron_right, size: 14, color: Colors.grey),
-      Text("Pagamento", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w500)),
-    ],
-  );
-
-  Widget _buildAbas() => Container(
-    padding: const EdgeInsets.all(4),
-    decoration: BoxDecoration(color: const Color(0xFFF2F4E8), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFABC33E).withOpacity(0.5))),
-    child: Row(
-      children: [
-        _payTab("Cartão de crédito", Icons.credit_card, metodoPaga == "Cartão"),
-        _payTab("Pix", Icons.pix, metodoPaga == "Pix"),
-      ],
-    ),
-  );
-
-  Widget _payTab(String t, IconData i, bool s) => Expanded(
-    child: GestureDetector(
-      onTap: () => setState(() => metodoPaga = t.contains("Pix") ? "Pix" : "Cartão"),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(color: s ? const Color(0xFFABC33E) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(i, size: 16, color: s ? Colors.white : Colors.black54),
-          const SizedBox(width: 8),
-          Text(t, style: TextStyle(color: s ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 13)),
-        ]),
+  void _mostrarSucesso() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+        content: const Text("Pagamento realizado com sucesso!", textAlign: TextAlign.center),
+        actions: [TextButton(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/landing', (route) => false), child: const Text("VOLTAR AO INÍCIO"))],
       ),
-    ),
-  );
-
-  Widget _checkboxTermos(Color c) => Row(children: [SizedBox(height: 24, width: 24, child: Checkbox(value: aceitouTermos, activeColor: c, onChanged: (v) => setState(() => aceitouTermos = v!))), const Expanded(child: Text(" Li e concordo com os Termos de Uso.", style: TextStyle(fontSize: 11, decoration: TextDecoration.underline)))]);
-
-  Widget _botaoFinalizar(Color c) => SizedBox(width: double.infinity, height: 52, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.white, side: BorderSide(color: c, width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), elevation: 0), onPressed: aceitouTermos ? () {} : null, child: Text(metodoPaga == "Pix" ? "GERAR QR CODE PIX" : "REALIZAR PAGAMENTO", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14))));
-
-  Widget _botaoFinalizarCarrinho() => SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25))), onPressed: () => Navigator.pop(context), child: const Text("VOLTAR AO PAGAMENTO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))));
-
-  Widget _seloSeguranca() => const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.security, size: 14, color: Colors.grey), SizedBox(width: 5), Text("Pagamento processado em ambiente seguro", style: TextStyle(fontSize: 10, color: Colors.grey))]);
+    );
+  }
 }
