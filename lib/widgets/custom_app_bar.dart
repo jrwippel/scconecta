@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/currency_service.dart';
-import '../screens/meus_pedidos_screen.dart'; // Certifique-se de importar a nova tela
+import '../screens/meus_pedidos_screen.dart';
+import '../screens/diagnostic_screen.dart'; // IMPORTANTE: Importar a nova tela
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
@@ -78,7 +79,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        // ÍCONE DO CARRINHO (Mantido como ação principal)
         GestureDetector(
           onTap: onCartClick,
           child: Container(
@@ -95,7 +95,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
 
-        // MENU DE 3 PONTINHOS (Substituindo o botão Sair direto)
+        // MENU DE 3 PONTINHOS ATUALIZADO
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert, color: Colors.black54),
           padding: EdgeInsets.zero,
@@ -105,7 +105,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const MeusPedidosScreen()),
               );
-            } else if (value == 'sair') {
+            } 
+            // NOVA OPÇÃO: DIAGNÓSTICO
+            else if (value == 'diagnostico') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DiagnosticScreen()),
+              );
+            } 
+            else if (value == 'sair') {
               onLogout();
             }
           },
@@ -117,6 +125,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Icon(Icons.assignment_outlined, color: verdeOliva, size: 20),
                   const SizedBox(width: 10),
                   const Text("Meus Pedidos", style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+            // ITEM DO MENU: DIAGNÓSTICO
+            PopupMenuItem(
+              value: 'diagnostico',
+              child: Row(
+                children: [
+                  Icon(Icons.checklist_rtl_rounded, color: verdeOliva, size: 20),
+                  const SizedBox(width: 10),
+                  const Text("Diagnóstico eSIM", style: TextStyle(fontSize: 14)),
                 ],
               ),
             ),

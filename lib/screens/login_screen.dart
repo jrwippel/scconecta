@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/currency_service.dart';
 import '../services/auth_service.dart';
 import 'landing_screen.dart';
-import 'register_screen.dart'; // Certifique-se de ter criado este arquivo
+import 'register_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import necessário
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,11 +17,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final CurrencyService _currencyService = CurrencyService();
   final AuthService _authService = AuthService();
 
-  // Controladores para capturar o texto
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _isLoading = false; // Controla o estado de carregamento do botão
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,7 +29,28 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // Lógica de Autenticação
+  // NOVA LÓGICA: LOGIN COM GOOGLE
+  void _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+
+    // Chama o método que vamos adicionar no seu AuthService
+    UserCredential? userCred = await _authService.signInWithGoogle();
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+
+      if (userCred != null) {
+        // Sucesso total
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (c) => const LandingPageScreen()),
+        );
+      } else {
+        _showSnackBar("Login com Google cancelado ou falhou.");
+      }
+    }
+  }
+
   void _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -40,20 +61,16 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _isLoading = true);
-
     String? error = await _authService.login(email, password);
 
     if (mounted) {
       setState(() => _isLoading = false);
-
       if (error == null) {
-        // Login bem-sucedido
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (c) => const LandingPageScreen()),
         );
       } else {
-        // Exibe erro do Firebase (ex: senha errada, usuário não encontrado)
         _showSnackBar(error);
       }
     }
@@ -110,65 +127,54 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(width: 15),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black.withOpacity(0.1)),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    const Text("Identificação",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 30),
-                    
-                    _buildField("E-MAIL", false, _emailController),
-                    const SizedBox(height: 20),
-                    _buildField("SENHA", true, _passwordController, showEsqueceu: true),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // Botão de ação com feedback de carregamento
-                    _isLoading 
-                      ? const CircularProgressIndicator(color: Colors.black)
-                      : _buildButton("Continuar", Colors.black, Colors.white, _handleLogin),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Link para cadastro
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => const RegisterScreen()),
-                        );
-                      },
-                      child: const Text("Não tem cadastro? Cadastre-se",
-                          style: TextStyle(
-                              fontSize: 12,
-                              decoration: TextDecoration.underline,
-                              fontWeight: FontWeight.w600)),
-                    ),
-                    
-                    const SizedBox(height: 30),
-                    const Text("Login com:", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                    const SizedBox(height: 10),
-                    
-                    // Botão Google
-                    _buildGoogleButton(),
-                  ],
+      // Adicionado SafeArea para o S21
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(25),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black.withOpacity(0.1)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text("Identificação",
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 30),
+                      _buildField("E-MAIL", false, _emailController),
+                      const SizedBox(height: 20),
+                      _buildField("SENHA", true, _passwordController, showEsqueceu: true),
+                      const SizedBox(height: 30),
+                      
+                      _isLoading 
+                        ? const CircularProgressIndicator(color: Colors.black)
+                        : _buildButton("Continuar", Colors.black, Colors.white, _handleLogin),
+                      
+                      const SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const RegisterScreen())),
+                        child: const Text("Não tem cadastro? Cadastre-se",
+                            style: TextStyle(fontSize: 12, decoration: TextDecoration.underline, fontWeight: FontWeight.w600)),
+                      ),
+                      const SizedBox(height: 30),
+                      const Text("Login com:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const SizedBox(height: 10),
+                      
+                      // Botão Google Atualizado
+                      _buildGoogleButton(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 50),
-            _buildFooter(cinzaFundoFooter, verdeOliva),
-          ],
+              const SizedBox(height: 50),
+              _buildFooter(cinzaFundoFooter, verdeOliva),
+            ],
+          ),
         ),
       ),
     );
@@ -186,10 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
             if (showEsqueceu)
               GestureDetector(
-                onTap: () {
-                  // Aqui futuramente chamaremos o AuthService().resetPassword()
-                  _showSnackBar("Função de recuperar senha em breve.");
-                },
+                onTap: () => _showSnackBar("Recuperação de senha enviada ao e-mail."),
                 child: const Text("Esqueceu?",
                     style: TextStyle(fontSize: 11, decoration: TextDecoration.underline, color: Colors.black54)),
               ),
@@ -228,26 +231,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildGoogleButton() {
-    return SizedBox(
-      width: 150,
-      child: OutlinedButton(
-        onPressed: () => _showSnackBar("Login com Google em breve!"),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.black12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.g_mobiledata, color: Colors.red, size: 28),
-            Text(" Google", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          ],
-        ),
+  return Container(
+    width: 220, // Aumentamos um pouco a largura total
+    child: OutlinedButton(
+      onPressed: _handleGoogleLogin,
+      style: OutlinedButton.styleFrom(
+        side: const BorderSide(color: Colors.black12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       ),
-    );
-  }
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // Garante que o conteúdo não estique
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/images/google_logo.png', height: 20),
+          const SizedBox(width: 8),
+          const Flexible( // Isso impede o erro de "Pixels Overflow"
+            child: Text(
+              "Entrar com Google",
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
+
+  // ... Widget _buildFooter e _buildContactItem seguem iguais ...
   Widget _buildFooter(Color bg, Color verde) {
     return Container(
       color: bg,

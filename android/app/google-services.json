@@ -12,7 +12,20 @@
           "package_name": "com.example.scconecta_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "852419966817-la0rl8dlfsqk41dlkh8jea2527b0hfqj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.scconecta_app",
+            "certificate_hash": "68083c11d19c7ef66b3d827c4d490493bb2581da"
+          }
+        },
+        {
+          "client_id": "852419966817-tdaiuuq7tgtjfojdlhep6c1oes8e9q4l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBuwumVznuj2yjJB9YHf1_Zspc6IHafQWM"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "852419966817-tdaiuuq7tgtjfojdlhep6c1oes8e9q4l.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "852419966817-9mq852qcv74g919jbr0hshfg0o3a4lab.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.scconectaApp"
+              }
+            }
+          ]
         }
       }
     }
