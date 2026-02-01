@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart'; 
+import 'screens/landing_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,7 +61,11 @@ class SCConectaApp extends StatelessWidget {
       
       // DICA: Se a LoginScreen ainda estiver estranha, abra o arquivo login_screen.dart
       // e envolva o conteúdo do Scaffold com um widget SafeArea.
-      home: const LoginScreen(),
+      home: const LandingPageScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/landing': (context) => const LandingPageScreen(),
+      },
     );
   }
 }

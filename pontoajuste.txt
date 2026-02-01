@@ -1,0 +1,9 @@
+1)Verificar se o celular esta habiltado para o e-sim
+2)Ativação do e-sim(compartilhado) - gera o link com o app 
+	desligar o roaming
+	desligar segunda linha
+3)Teste de velocidade - SpeedTest
+4)Verificação de consumo
+5)Notificações
+		pedido incompleto - gerar notificação pra finalizar pedido (avaliar)
+
