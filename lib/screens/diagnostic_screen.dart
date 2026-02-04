@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:speed_test_dart/speed_test_dart.dart';
 import 'package:http/http.dart' as http;
 
 class DiagnosticScreen extends StatefulWidget {
@@ -12,6 +11,7 @@ class DiagnosticScreen extends StatefulWidget {
 }
 
 class _DiagnosticScreenState extends State<DiagnosticScreen> {
+  // Canal de comunicação com o Android (deve ser o mesmo do MainActivity.kt)
   static const platform = MethodChannel('com.scconecta.app/roaming');
   
   List<dynamic> _linhas = [];
@@ -21,7 +21,7 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
   
   // Variáveis do Teste de Velocidade
   bool _isTestingSpeed = false;
-  double _downloadRate = 0.0; // Resultado que fica na tela
+  double _downloadRate = 0.0; 
   double _progress = 0.0;
 
   final Color verdeOliva = const Color(0xFFABC33E);
@@ -32,6 +32,7 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
     _fetchDiagnostico();
   }
 
+  // Busca as informações do sistema via MethodChannel
   Future<void> _fetchDiagnostico() async {
     setState(() => _isLoading = true);
     try {
@@ -43,69 +44,58 @@ class _DiagnosticScreenState extends State<DiagnosticScreen> {
         _linhas = result;
       });
     } on PlatformException catch (e) {
-      debugPrint("Erro: ${e.message}");
+      debugPrint("Erro na plataforma: ${e.message}");
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
- Future<void> _runSpeedTest() async {
-  setState(() {
-    _isTestingSpeed = true;
-    _downloadRate = 0.0;
-    _progress = 0.0;
-  });
+  // Realiza o teste de velocidade baixando um arquivo temporário
+  Future<void> _runSpeedTest() async {
+    setState(() {
+      _isTestingSpeed = true;
+      _downloadRate = 0.0;
+      _progress = 0.0;
+    });
 
-  try {
-    // Usaremos um arquivo de 10MB da Cloudflare para o teste
-    final url = Uri.parse('https://speed.cloudflare.com/__down?bytes=10485760');
-    
-    final stopwatch = Stopwatch()..start();
-    final response = await http.get(url).timeout(const Duration(seconds: 20));
-    stopwatch.stop();
-
-    if (response.statusCode == 200) {
-      final int bytes = response.bodyBytes.length;
-      final double seconds = stopwatch.elapsedMilliseconds / 1000.0;
+    try {
+      // Arquivo de 10MB para teste
+      final url = Uri.parse('https://speed.cloudflare.com/__down?bytes=10485760');
       
-      // Cálculo: (Bytes * 8 bits) / (1024 * 1024 para Megabits) / segundos
-      final double mbps = (bytes * 8) / (1024 * 1024) / seconds;
+      final stopwatch = Stopwatch()..start();
+      final response = await http.get(url).timeout(const Duration(seconds: 20));
+      stopwatch.stop();
 
-      setState(() {
-        _downloadRate = mbps;
-        _progress = 1.0;
-      });
+      if (response.statusCode == 200) {
+        final int bytes = response.bodyBytes.length;
+        final double seconds = stopwatch.elapsedMilliseconds / 1000.0;
+        
+        // Conversão para Mbps: (Bytes * 8 bits) / (1024 * 1024) / segundos
+        final double mbps = (bytes * 8) / (1024 * 1024) / seconds;
+
+        setState(() {
+          _downloadRate = mbps;
+          _progress = 1.0;
+        });
+      }
+    } catch (e) {
+      debugPrint("Erro no teste: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Falha ao medir velocidade. Verifique seu sinal de internet.")),
+        );
+      }
+    } finally {
+      setState(() => _isTestingSpeed = false);
     }
-  } catch (e) {
-    debugPrint("Erro no teste: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Erro ao medir velocidade. Verifique o sinal.")),
-    );
-  } finally {
-    setState(() => _isTestingSpeed = false);
   }
-}
-
-// Função auxiliar para mostrar o erro na tela
-void _showErrorDialog(String message) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text("Falha no Teste"),
-      content: Text(message),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))
-      ],
-    ),
-  );
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text("STATUS DE CONEXÃO", 
+        title: Text("Conectividade", 
           style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.2)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -151,7 +141,7 @@ void _showErrorDialog(String message) {
                 size: 14, color: _isEsimSupported ? verdeOliva : Colors.grey),
               const SizedBox(width: 8),
               Text(
-                _isEsimSupported ? "Dispositivo compatível com eSIM" : "Esse dispositivo não suporta eSIM",
+                _isEsimSupported ? "Dispositivo compatível com eSIM" : "Dispositivo sem suporte a eSIM",
                 style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold,
                   color: _isEsimSupported ? verdeOliva : Colors.grey[600]),
               ),
@@ -203,11 +193,17 @@ void _showErrorDialog(String message) {
                               if (isActive) _buildNetworkBadge(linha['networkType']),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
+                          // AÇÃO PARA DESATIVAR LINHA/CHIP
                           InkWell(
                             onTap: () => platform.invokeMethod('openSimSettings'),
-                            child: Text("GERENCIAR LINHA >",
-                              style: TextStyle(fontSize: 9, color: Colors.blue[600], fontWeight: FontWeight.bold)),
+                            child: Row(
+                              children: [
+                                Text("GERENCIAR LINHA / DESATIVAR CHIP",
+                                  style: TextStyle(fontSize: 9, color: Colors.blue[600], fontWeight: FontWeight.bold)),
+                                const Icon(Icons.arrow_forward_ios, size: 10, color: Colors.blue),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -222,6 +218,7 @@ void _showErrorDialog(String message) {
               ],
             ),
           ),
+          // Barra inferior de atalho para Roaming caso esteja em risco
           if (!isRoamingOn && isActive) _buildAlertBar(),
         ],
       ),
