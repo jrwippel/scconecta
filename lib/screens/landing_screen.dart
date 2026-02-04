@@ -5,7 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'selecao_plano_screen.dart';
 import '../widgets/custom_app_bar.dart';
-import '../theme/app_colors.dart'; // Import central das cores
+import '../theme/app_colors.dart';
 
 class LandingPageScreen extends StatefulWidget {
   const LandingPageScreen({super.key});
@@ -15,7 +15,7 @@ class LandingPageScreen extends StatefulWidget {
 }
 
 class _LandingPageScreenState extends State<LandingPageScreen> {
-  DateTime _focusedDay = DateTime(2026, 2, 1);
+  DateTime _focusedDay = DateTime.now();
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
   bool _showCalendar = false;
@@ -40,9 +40,8 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
           Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
         },
       ),      
-      backgroundColor: AppColors.verdeFundo, // Usando a cor centralizada
+      backgroundColor: AppColors.verdeFundo, 
       
-      // O SafeArea garante que o conteúdo não fique sob a câmera (furo) ou barras de navegação
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -81,6 +80,15 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
                           ListTile(
                             leading: const Icon(Icons.calendar_month, color: AppColors.verdePrincipal),
                             title: Text(textoData, style: const TextStyle(fontSize: 15)),
+                            trailing: _rangeStart != null 
+                              ? IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  onPressed: () => setState(() {
+                                    _rangeStart = null;
+                                    _rangeEnd = null;
+                                  }),
+                                )
+                              : null,
                             onTap: () => setState(() => _showCalendar = !_showCalendar),
                           ),
                           if (_showCalendar) 
@@ -92,12 +100,30 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
                               rangeSelectionMode: RangeSelectionMode.enforced,
                               rangeStartDay: _rangeStart,
                               rangeEndDay: _rangeEnd,
+                              
+                              // BLOQUEIO VISUAL: Desabilita dias que não cumprem o requisito de 4 dias
+                              enabledDayPredicate: (day) {
+                                if (_rangeStart != null && _rangeEnd == null) {
+                                  // Se selecionou o início, bloqueia os 3 dias seguintes (pois o mínimo é o 4º dia)
+                                  final limiteMinimo = _rangeStart!.add(const Duration(days: 3));
+                                  if (day.isAfter(_rangeStart!) && day.isBefore(limiteMinimo.add(const Duration(seconds: 1)))) {
+                                    return false;
+                                  }
+                                }
+                                return true;
+                              },
+
                               onRangeSelected: (start, end, focusedDay) {
                                 setState(() {
                                   _rangeStart = start;
                                   _rangeEnd = end;
                                   _focusedDay = focusedDay;
-                                  if (end != null) _showCalendar = false;
+
+                                  // Se o usuário selecionou o fim, fechamos o calendário
+                                  // A regra do enabledDayPredicate já garante que ele só clique em datas válidas
+                                  if (end != null) {
+                                    _showCalendar = false;
+                                  }
                                 });
                               },
                               headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
@@ -105,6 +131,7 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
                                 rangeHighlightColor: Color(0xFFF1F8E9),
                                 rangeStartDecoration: BoxDecoration(color: AppColors.verdePrincipal, shape: BoxShape.circle),
                                 rangeEndDecoration: BoxDecoration(color: AppColors.verdePrincipal, shape: BoxShape.circle),
+                               disabledTextStyle: TextStyle(color: Colors.black26), // Troque black24 por black26o dos dias desabilitados
                               ),
                             ),
                         ],
@@ -134,7 +161,10 @@ class _LandingPageScreenState extends State<LandingPageScreen> {
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Por favor, selecione o período da viagem no calendário.")),
+                              const SnackBar(
+                                content: Text("Selecione um período de no mínimo 4 dias."),
+                                backgroundColor: Colors.orange,
+                              ),
                             );
                           }
                         },
