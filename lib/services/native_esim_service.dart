@@ -223,6 +223,16 @@ class NativeESimService {
     }
   }
 
+  /// Retorna lista de eSIMs como Map (para compatibilidade)
+  static Future<List<Map<String, dynamic>>> getInstalledESims() async {
+    final profiles = await getInstalledProfiles();
+    return profiles.map((p) => {
+      'iccid': p.iccid,
+      'carrierName': p.carrierName ?? 'SC CONECTA',
+      'isActive': p.isActive,
+    }).toList();
+  }
+
   static InstallationErrorType _parseErrorType(String type) {
     switch (type) {
       case 'deviceNotSupported':

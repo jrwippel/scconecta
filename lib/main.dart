@@ -14,6 +14,7 @@ import 'screens/mvp_activation_screen.dart';
 import 'screens/esim_activation_screen.dart';
 import 'screens/esim_setup_wizard_screen.dart';
 import 'screens/esim_install_screen.dart';
+import 'screens/my_esims_screen.dart';
 import 'screens/web_redirect_screen.dart';
 import 'services/language_service.dart';
 import 'services/deep_link_service.dart';
@@ -191,7 +192,7 @@ class _SCConectaAppState extends State<SCConectaApp> {
             colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8DBB1B)),
             useMaterial3: true,
           ),
-          home: const LandingPageScreen(),
+          home: const MyESimsScreen(), // MVP: Tela inicial sem login
           routes: {
             '/login': (context) => const LoginScreen(),
             '/landing': (context) => const LandingPageScreen(),
