@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCCONECTA - Instalar eSIM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(141, 187, 27, 0.4);
+            text-decoration: none;
+            display: block;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(141, 187, 27, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            margin-top: 10px;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 2px solid #90caf9;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border: 2px solid #81c784;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+            border: 2px solid #ef5350;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #8DBB1B;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            border: 2px solid #81c784;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .info-box strong {
+            color: #2e7d32;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #2e7d32;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+
+        .store-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .store-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .store-btn.android {
+            background: #3DDC84;
+            color: white;
+        }
+
+        .store-btn.ios {
+            background: #000;
+            color: white;
+        }
+
+        .store-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        #appNotInstalled {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌍</div>
+        <h1>Instalar eSIM</h1>
+        <p class="subtitle">SCCONECTA - Conectando você ao mundo</p>
+
+        <div class="info-box">
+            <strong>✨ Instalação Automática</strong>
+            <p>• Clique no botão abaixo</p>
+            <p>• Seu eSIM será instalado automaticamente</p>
+            <p>• Siga as instruções no app</p>
+        </div>
+
+        <button class="btn" id="installBtn" onclick="installESim()">
+            🚀 Instalar eSIM Agora
+        </button>
+
+        <div id="status"></div>
+
+        <div id="appNotInstalled">
+            <div class="info-box" style="background: #fff3cd; border-color: #ffc107;">
+                <strong style="color: #856404;">📱 App não instalado</strong>
+                <p style="color: #856404;">Baixe o app SCCONECTA primeiro:</p>
+            </div>
+            
+            <div class="store-buttons">
+                <a href="https://play.google.com/store/apps/details?id=com.example.scconecta_app" 
+                   class="store-btn android" target="_blank">
+                    <span style="font-size: 24px;">📱</span>
+                    <span>Android</span>
+                </a>
+                <a href="https://apps.apple.com/app/scconecta/id123456789" 
+                   class="store-btn ios" target="_blank">
+                    <span style="font-size: 24px;">🍎</span>
+                    <span>iOS</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            SCCONECTA © 2026 - Conectando você ao mundo 🌍
+        </div>
+    </div>
+
+    <script>
+        // Pega a LPA String da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const lpaString = urlParams.get('lpa');
+
+        console.log('=== SCCONECTA eSIM ===');
+        console.log('LPA String:', lpaString);
+
+        if (!lpaString) {
+            document.getElementById('status').className = 'status error';
+            document.getElementById('status').innerHTML = '⚠️ Link inválido. LPA String não encontrada.';
+            document.getElementById('installBtn').disabled = true;
+        }
+
+        // Detecta plataforma
+        function detectPlatform() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            }
+            
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'ios';
+            }
+            
+            return 'unknown';
+        }
+
+        // Instala eSIM
+        function installESim() {
+            if (!lpaString) {
+                alert('LPA String não encontrada no link!');
+                return;
+            }
+
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('installBtn');
+            
+            // Desabilita botão
+            btn.disabled = true;
+            btn.textContent = '⏳ Abrindo app...';
+            
+            // Mostra loading
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = '<span class="loading"></span>Abrindo app SCCONECTA...';
+
+            // Deep link com LPA String
+            // O app vai receber a LPA diretamente!
+            const deepLink = `scconecta://install?lpa=${encodeURIComponent(lpaString)}`;
+            
+            console.log('Deep Link:', deepLink);
+            
+            // Tenta abrir o app
+            window.location.href = deepLink;
+
+            // Aguarda 2.5 segundos
+            setTimeout(() => {
+                // Se ainda está na página, app não está instalado
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '⚠️ App SCCONECTA não está instalado';
+                
+                btn.disabled = false;
+                btn.textContent = '🚀 Instalar eSIM Agora';
+                
+                // Mostra botões de download
+                document.getElementById('appNotInstalled').style.display = 'block';
+            }, 2500);
+        }
+
+        // Auto-tenta abrir o app após 1 segundo (opcional)
+        // setTimeout(installESim, 1000);
+    </script>
+</body>
+</html>
