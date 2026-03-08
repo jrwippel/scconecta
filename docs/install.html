@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCCONECTA - Instalar eSIM</title>
+    <title>SC CONECTA - Instalar eSIM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,7 +15,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
             min-height: 100vh;
             display: flex;
@@ -32,27 +35,36 @@
         }
 
         .logo {
-            font-size: 64px;
+            width: 200px;
+            height: auto;
             margin-bottom: 20px;
-            animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .logo-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
         }
 
         h1 {
             color: #333;
-            font-size: 32px;
+            font-size: 28px;
             margin-bottom: 10px;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .subtitle {
             color: #666;
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 30px;
+            font-weight: 400;
         }
 
         .btn {
@@ -193,9 +205,11 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo">🌍</div>
+        <!-- Logo SCCONECTA -->
+        <div class="logo-text">SC CONECTA</div>
+        <div class="logo-icon">🌍</div>
         <h1>Instalar eSIM</h1>
-        <p class="subtitle">SCCONECTA - Conectando você ao mundo</p>
+        <p class="subtitle">Conectando você ao mundo</p>
 
         <div class="info-box">
             <strong>✨ Instalação Automática</strong>
@@ -241,7 +255,7 @@
         </div>
 
         <div class="footer">
-            SCCONECTA © 2026 - Conectando você ao mundo 🌍
+            SC CONECTA © 2026 - Conectando você ao mundo 🌍
         </div>
     </div>
 
