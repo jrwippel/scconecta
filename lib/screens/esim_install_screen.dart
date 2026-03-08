@@ -60,7 +60,7 @@ class _ESimInstallScreenState extends State<ESimInstallScreen> {
       // Chama o código nativo para instalar
       final result = await NativeESimService.installESim(widget.lpaString);
 
-      if (result['success'] == true) {
+      if (result.success) {
         setState(() {
           _status = 'eSIM instalado com sucesso!';
           _progress = 1.0;
@@ -81,7 +81,7 @@ class _ESimInstallScreenState extends State<ESimInstallScreen> {
           );
         }
       } else {
-        throw Exception(result['error'] ?? 'Erro desconhecido');
+        throw Exception(result.errorMessage ?? 'Erro desconhecido');
       }
     } catch (e) {
       setState(() {
@@ -324,7 +324,6 @@ class _ESimInstallScreenState extends State<ESimInstallScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 11,
                       color: Colors.grey.shade600,
-                      fontFamily: 'monospace',
                     ),
                     textAlign: TextAlign.center,
                   ),
