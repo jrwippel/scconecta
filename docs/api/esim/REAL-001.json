@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "data": {
+    "activation_code": "REAL-001",
+    "lpa_string": "LPA:1$RSP-4040.IDEMIA.IO$QZTI5-CGVFT-E0ISM-5EOLW",
+    "iccid": "8955141234567890123",
+    "plan": {
+      "id": "internacional",
+      "name": "eSIM Internacional IDEMIA",
+      "countries": ["Brasil", "Estados Unidos", "Canadá", "México", "Europa"],
+      "data": "Conforme plano contratado",
+      "voice": "Conforme plano contratado",
+      "sms": "Conforme plano contratado",
+      "price": 0
+    },
+    "validity": {
+      "start_date": "2026-03-08T00:00:00Z",
+      "end_date": "2026-04-08T23:59:59Z",
+      "days_remaining": 31
+    },
+    "status": "pending_activation",
+    "user": {
+      "email": "teste@scconecta.com",
+      "name": "Teste Real",
+      "phone": "+5511999999999"
+    },
+    "created_at": "2026-03-08T10:00:00Z"
+  }
+}

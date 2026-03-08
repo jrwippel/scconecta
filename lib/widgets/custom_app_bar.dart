@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../services/currency_service.dart';
+import '../services/language_service.dart';
 import '../screens/meus_pedidos_screen.dart';
 import '../screens/diagnostic_screen.dart'; 
 import '../screens/login_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
   final VoidCallback onLogout;
   final VoidCallback? onCartClick;
   final int cartCount;
+  final List<Widget>? actions;
 
   final CurrencyService _currencyService = CurrencyService();
 
@@ -19,14 +23,50 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onLogout,
     this.onCartClick,
     this.cartCount = 0,
+    this.actions,
   });
 
   @override
   Size get preferredSize => const Size.fromHeight(65);
 
+  void _showLanguageDialog(BuildContext context) {
+    final languageService = Provider.of<LanguageService>(context, listen: false);
+    final localizations = AppLocalizations.of(context);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(localizations?.translate('select_language') ?? 'Selecionar Idioma'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildLanguageOption(context, languageService, 'pt', '🇧🇷 Português'),
+              _buildLanguageOption(context, languageService, 'en', '🇺🇸 English'),
+              _buildLanguageOption(context, languageService, 'es', '🇪🇸 Español'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption(BuildContext context, LanguageService service, String code, String label) {
+    final isSelected = service.currentLocale.languageCode == code;
+    return ListTile(
+      title: Text(label),
+      trailing: isSelected ? const Icon(Icons.check, color: Color(0xFFABC33E)) : null,
+      onTap: () {
+        service.changeLanguage(code);
+        Navigator.pop(context);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color verdeOliva = Color(0xFFABC33E);
+    final localizations = AppLocalizations.of(context);
     
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
@@ -34,8 +74,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         final User? user = snapshot.data;
         
         final String nomeParaExibir = user != null 
-            ? (userName ?? user.displayName ?? user.email?.split('@')[0] ?? "Usuário")
-            : "Visitante";
+            ? (userName ?? user.displayName ?? user.email?.split('@')[0] ?? localizations?.translate('user') ?? "Usuário")
+            : localizations?.translate('visitor') ?? "Visitante";
 
         return AppBar(
           backgroundColor: Colors.white,
@@ -47,7 +87,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Row(
                 children: [
-                  const Text("Olá, ", style: TextStyle(color: Colors.black54, fontSize: 11)),
+                  Text("${localizations?.translate('hello') ?? 'Olá,'} ", style: const TextStyle(color: Colors.black54, fontSize: 11)),
                   Expanded(
                     child: Text(
                       nomeParaExibir,
@@ -83,6 +123,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ],
           ),
           actions: [
+            // Actions customizadas (se fornecidas)
+            if (actions != null) ...actions!,
+            
             GestureDetector(
               onTap: onCartClick,
               child: Container(
@@ -117,6 +160,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     context,
                     MaterialPageRoute(builder: (context) => const DiagnosticScreen()),
                   );
+                } else if (value == 'idioma') {
+                  _showLanguageDialog(context);
                 } else if (value == 'sair') {
                   onLogout();
                 }
@@ -136,10 +181,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   value: 'diagnostico',
                   child: Row(
                     children: [
-                      // NOVO ÍCONE DE CONECTIVIDADE
                       Icon(Icons.sensors, color: verdeOliva, size: 20),
                       const SizedBox(width: 10),
                       const Text("Conectividade", style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'idioma',
+                  child: Row(
+                    children: [
+                      Icon(Icons.language, color: verdeOliva, size: 20),
+                      const SizedBox(width: 10),
+                      const Text("Idioma", style: TextStyle(fontSize: 14)),
                     ],
                   ),
                 ),

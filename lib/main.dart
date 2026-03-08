@@ -1,70 +1,219 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // ADICIONADO para controlar as cores do sistema
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart'; 
 import 'screens/landing_screen.dart';
+import 'screens/esim_setup_tutorial_screen.dart';
+import 'screens/mvp_demo_purchase_screen.dart';
+import 'screens/mvp_activation_screen.dart';
+import 'screens/esim_activation_screen.dart';
+import 'screens/esim_setup_wizard_screen.dart';
+import 'screens/web_redirect_screen.dart';
+import 'services/language_service.dart';
+import 'services/deep_link_service.dart';
+import 'services/esim_detector_service.dart';
+import 'l10n/app_localizations.dart';
+
+// --- CHAVE GLOBAL PARA NAVEGAÇÃO (ESSENCIAL) ---
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // 1. Inicializa o Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // 2. Configura o enquadramento das barras do sistema (Status Bar e Navigation Bar)
-  // Isso ajuda muito no S21 para o conteúdo não "vazar" para baixo das barras.
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent, // Deixa a barra de cima transparente
-    statusBarIconBrightness: Brightness.dark, // Ícones pretos (já que o fundo é claro)
-    systemNavigationBarColor: Colors.white, // Cor da barra de baixo (onde ficam os botões/gestos)
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.white,
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
-  // 3. Força o app a ficar apenas em pé (opcional, evita quebras de layout ao girar)
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
   await initializeDateFormatting('pt_BR', null);
+  await initializeDateFormatting('en_US', null);
+  await initializeDateFormatting('es_ES', null);
 
-  runApp(const SCConectaApp());
+  // Inicializa o serviço de deep links
+  final deepLinkService = DeepLinkService();
+  await deepLinkService.initialize();
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LanguageService(),
+      child: SCConectaApp(deepLinkService: deepLinkService),
+    ),
+  );
 }
 
-const Color verdePrincipal = Color(0xFF8DBB1B);
+class SCConectaApp extends StatefulWidget {
+  final DeepLinkService deepLinkService;
+  
+  const SCConectaApp({super.key, required this.deepLinkService});
 
-class SCConectaApp extends StatelessWidget {
-  const SCConectaApp({super.key});
+  @override
+  State<SCConectaApp> createState() => _SCConectaAppState();
+}
+
+class _SCConectaAppState extends State<SCConectaApp> {
+  @override
+  void initState() {
+    super.initState();
+    
+    // Configura o callback de deep links
+    widget.deepLinkService.onLinkReceived = (uri) {
+      _handleDeepLink(uri);
+    };
+    
+    // Monitora instalação de novos eSIMs
+    _monitorESimInstallation();
+  }
+
+  void _handleDeepLink(Uri uri) {
+    print('Processando deep link: $uri');
+    
+    // Link de ativação de eSIM (NOVO - Fase 1)
+    if (widget.deepLinkService.isESimActivationLink(uri)) {
+      final code = widget.deepLinkService.getActivationCodeFromLink(uri);
+      
+      if (code != null) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (context) => ESimActivationScreen(activationCode: code),
+            ),
+          );
+        });
+        return;
+      }
+    }
+    
+    // Link de instalação de eSIM (antigo)
+    if (widget.deepLinkService.isESimInstallLink(uri)) {
+      final iccid = widget.deepLinkService.getICCIDFromLink(uri);
+      
+      // Navega para a tela de tutorial
+      Future.delayed(const Duration(milliseconds: 500), () {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (context) => ESimSetupTutorialScreen(iccid: iccid),
+          ),
+        );
+      });
+    }
+  }
+
+  void _monitorESimInstallation() {
+    // Verifica periodicamente se há novo eSIM
+    Future.delayed(const Duration(seconds: 2), () async {
+      final result = await ESimDetectorService.checkForNewESim();
+      
+      if (result != null && result['hasNewESim'] == true) {
+        final iccid = result['iccid'] as String?;
+        final carrierName = result['carrierName'] as String?;
+        
+        // Verifica se é eSIM SCCONECTA
+        if (iccid != null && ESimDetectorService.isSCConectaESim(iccid)) {
+          // Verifica se já mostrou o tutorial
+          final alreadyShown = await ESimDetectorService.wasTutorialShown(iccid);
+          
+          if (!alreadyShown) {
+            // Mostra o tutorial
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(
+                builder: (context) => ESimSetupTutorialScreen(
+                  iccid: iccid,
+                  carrierName: carrierName,
+                ),
+              ),
+            );
+            
+            // Marca como mostrado
+            await ESimDetectorService.markTutorialShown(iccid);
+          }
+        }
+      }
+      
+      // Continua monitorando
+      _monitorESimInstallation();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SC Conecta',
-      debugShowCheckedModeBanner: false,
-      
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('pt', 'BR')],
-      locale: const Locale('pt', 'BR'),
-      
-      theme: ThemeData(
-        textTheme: GoogleFonts.montserratTextTheme(),
-        scaffoldBackgroundColor: Colors.white,
-        colorScheme: ColorScheme.fromSeed(seedColor: verdePrincipal),
-        useMaterial3: true,
-      ),
-      
-      // DICA: Se a LoginScreen ainda estiver estranha, abra o arquivo login_screen.dart
-      // e envolva o conteúdo do Scaffold com um widget SafeArea.
-      home: const LandingPageScreen(),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/landing': (context) => const LandingPageScreen(),
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          title: 'SC Conecta',
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('pt', 'BR'),
+            Locale('en', 'US'),
+            Locale('es', 'ES'),
+          ],
+          locale: languageService.currentLocale,
+          theme: ThemeData(
+            textTheme: GoogleFonts.montserratTextTheme(),
+            scaffoldBackgroundColor: Colors.white,
+            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8DBB1B)),
+            useMaterial3: true,
+          ),
+          home: const LandingPageScreen(),
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/landing': (context) => const LandingPageScreen(),
+            '/mvp-demo': (context) => const MVPDemoPurchaseScreen(),
+          },
+          onGenerateRoute: (settings) {
+            // Rota de ativação MVP (antiga)
+            if (settings.name == '/activate') {
+              final code = settings.arguments as String;
+              return MaterialPageRoute(
+                builder: (context) => MVPActivationScreen(activationCode: code),
+              );
+            }
+            
+            // Rota de ativação real (NOVA - Fase 1)
+            if (settings.name == '/esim-activation') {
+              final code = settings.arguments as String;
+              return MaterialPageRoute(
+                builder: (context) => ESimActivationScreen(activationCode: code),
+              );
+            }
+            
+            // Rota de wizard (NOVA - Fase 1)
+            if (settings.name == '/esim-wizard') {
+              final args = settings.arguments as Map<String, String>;
+              return MaterialPageRoute(
+                builder: (context) => ESimSetupWizardScreen(
+                  activationCode: args['activationCode']!,
+                  planName: args['planName']!,
+                ),
+              );
+            }
+            
+            // Rota de redirecionamento web (NOVA - Simula página web)
+            if (settings.name == '/web-redirect') {
+              final code = settings.arguments as String;
+              return MaterialPageRoute(
+                builder: (context) => WebRedirectScreen(activationCode: code),
+              );
+            }
+            
+            return null;
+          },
+        );
       },
     );
   }

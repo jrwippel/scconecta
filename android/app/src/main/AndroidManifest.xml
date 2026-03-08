@@ -30,6 +30,26 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            
+            <!-- Deep Links para eSIM -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                      android:host="scconecta.com"
+                      android:pathPrefix="/esim"/>
+                <data android:scheme="scconecta"/>
+            </intent-filter>
+            
+            <!-- Deep Link para ativação (scconecta://activate) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="scconecta"
+                      android:host="activate"/>
+            </intent-filter>
         </activity>
 
         <meta-data
