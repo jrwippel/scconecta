@@ -88,6 +88,31 @@ class DeepLinkService {
     return isESimActivationLink(uri) && getActivationCodeFromLink(uri) != null;
   }
 
+  // Verifica se é um link de instalação com LPA (NOVO - Fase 1)
+  bool isLPAInstallLink(Uri uri) {
+    return (uri.host == 'install' || uri.path.contains('/install')) && 
+           uri.queryParameters.containsKey('lpa');
+  }
+
+  // Extrai LPA String do link (NOVO - Fase 1)
+  String? getLPAFromLink(Uri uri) {
+    return uri.queryParameters['lpa'];
+  }
+
+  // Valida formato da LPA String
+  bool isValidLPA(String? lpa) {
+    if (lpa == null || lpa.isEmpty) return false;
+    
+    // LPA deve começar com "LPA:1$"
+    if (!lpa.startsWith('LPA:1\$')) return false;
+    
+    // Deve ter pelo menos 3 partes separadas por $
+    final parts = lpa.split('\$');
+    if (parts.length < 3) return false;
+    
+    return true;
+  }
+
   void dispose() {
     _linkSubscription?.cancel();
   }

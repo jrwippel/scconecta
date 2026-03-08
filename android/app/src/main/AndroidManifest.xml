@@ -50,6 +50,15 @@
                 <data android:scheme="scconecta"
                       android:host="activate"/>
             </intent-filter>
+            
+            <!-- Deep Link para instalação (scconecta://install) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="scconecta"
+                      android:host="install"/>
+            </intent-filter>
         </activity>
 
         <meta-data

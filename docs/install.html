@@ -210,6 +210,16 @@
 
         <div id="status"></div>
 
+        <!-- Instruções para Android -->
+        <div id="androidInstructions" style="display: none;">
+            <div class="info-box" style="background: #e3f2fd; border-color: #90caf9; margin-top: 20px;">
+                <strong style="color: #1976d2;">📱 Abrir com o App</strong>
+                <p style="color: #1565c0;">Se o app não abriu automaticamente:</p>
+                <p style="color: #1565c0;">1. Toque em "Abrir com..."</p>
+                <p style="color: #1565c0;">2. Selecione "SCCONECTA"</p>
+            </div>
+        </div>
+
         <div id="appNotInstalled">
             <div class="info-box" style="background: #fff3cd; border-color: #ffc107;">
                 <strong style="color: #856404;">📱 App não instalado</strong>
@@ -273,6 +283,7 @@
 
             const statusDiv = document.getElementById('status');
             const btn = document.getElementById('installBtn');
+            const platform = detectPlatform();
             
             // Desabilita botão
             btn.disabled = true;
@@ -283,26 +294,53 @@
             statusDiv.innerHTML = '<span class="loading"></span>Abrindo app SCCONECTA...';
 
             // Deep link com LPA String
-            // O app vai receber a LPA diretamente!
             const deepLink = `scconecta://install?lpa=${encodeURIComponent(lpaString)}`;
             
             console.log('Deep Link:', deepLink);
+            console.log('Platform:', platform);
             
-            // Tenta abrir o app
-            window.location.href = deepLink;
+            // Para Android, cria um link invisível e clica nele
+            // Isso permite que o Android mostre o "Abrir com..." se necessário
+            if (platform === 'android') {
+                const link = document.createElement('a');
+                link.href = deepLink;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Mostra instruções para Android
+                setTimeout(() => {
+                    document.getElementById('androidInstructions').style.display = 'block';
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ Clique em "Abrir com SCCONECTA" se aparecer a opção';
+                }, 1000);
+            } else {
+                // iOS e outros
+                window.location.href = deepLink;
+            }
 
-            // Aguarda 2.5 segundos
+            // Aguarda 3 segundos para verificar
             setTimeout(() => {
-                // Se ainda está na página, app não está instalado
-                statusDiv.className = 'status error';
-                statusDiv.innerHTML = '⚠️ App SCCONECTA não está instalado';
-                
-                btn.disabled = false;
-                btn.textContent = '🚀 Instalar eSIM Agora';
-                
-                // Mostra botões de download
-                document.getElementById('appNotInstalled').style.display = 'block';
-            }, 2500);
+                // Verifica se ainda está na página
+                if (document.hasFocus()) {
+                    // Ainda está na página - app pode não estar instalado
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = '⚠️ App SCCONECTA não está instalado';
+                    
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Instalar eSIM Agora';
+                    
+                    // Esconde instruções Android
+                    document.getElementById('androidInstructions').style.display = 'none';
+                    
+                    // Mostra botões de download
+                    document.getElementById('appNotInstalled').style.display = 'block';
+                } else {
+                    // Perdeu o foco - app provavelmente abriu
+                    console.log('✅ App abriu (página perdeu foco)');
+                }
+            }, 3000);
         }
 
         // Auto-tenta abrir o app após 1 segundo (opcional)

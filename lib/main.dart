@@ -13,6 +13,7 @@ import 'screens/mvp_demo_purchase_screen.dart';
 import 'screens/mvp_activation_screen.dart';
 import 'screens/esim_activation_screen.dart';
 import 'screens/esim_setup_wizard_screen.dart';
+import 'screens/esim_install_screen.dart';
 import 'screens/web_redirect_screen.dart';
 import 'services/language_service.dart';
 import 'services/deep_link_service.dart';
@@ -75,6 +76,27 @@ class _SCConectaAppState extends State<SCConectaApp> {
 
   void _handleDeepLink(Uri uri) {
     print('Processando deep link: $uri');
+    
+    // Link de instalação com LPA (NOVO - Fase 1)
+    if (widget.deepLinkService.isLPAInstallLink(uri)) {
+      final lpa = widget.deepLinkService.getLPAFromLink(uri);
+      
+      if (lpa != null && widget.deepLinkService.isValidLPA(lpa)) {
+        print('✅ LPA válida recebida: $lpa');
+        
+        // Navega para a tela de instalação
+        Future.delayed(const Duration(milliseconds: 500), () {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (context) => ESimInstallScreen(lpaString: lpa),
+            ),
+          );
+        });
+        return;
+      } else {
+        print('❌ LPA inválida: $lpa');
+      }
+    }
     
     // Link de ativação de eSIM (NOVO - Fase 1)
     if (widget.deepLinkService.isESimActivationLink(uri)) {
