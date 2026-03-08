@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCCONECTA - Ativar eSIM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .card-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-content {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: #8DBB1B;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #6A9515;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(141, 187, 27, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #8DBB1B;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .code {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #8DBB1B;
+            font-weight: bold;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            background: #8DBB1B;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌍</div>
+        <h1>Seu eSIM está Pronto!</h1>
+        <p class="subtitle">SCCONECTA - Conectando você ao mundo</p>
+
+        <div class="card">
+            <div class="card-title">
+                <span>📱</span>
+                <span>Plano Contratado</span>
+            </div>
+            <div class="card-content">
+                <strong id="planName">Plano América</strong>
+                <div class="plan-badge" id="planBadge">30 DIAS • DADOS ILIMITADOS</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span>🎯</span>
+                <span>Código de Ativação</span>
+            </div>
+            <div class="card-content">
+                <span class="code" id="activationCode">Carregando...</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span>✨</span>
+                <span>Instalação Automática</span>
+            </div>
+            <div class="card-content">
+                Clique no botão abaixo e seu eSIM será instalado automaticamente em segundos!
+            </div>
+        </div>
+
+        <button class="btn" id="openAppBtn" onclick="openApp()">
+            🚀 Instalar eSIM Agora
+        </button>
+
+        <button class="btn btn-secondary" onclick="copyLink()">
+            📋 Copiar Link de Ativação
+        </button>
+
+        <div id="status"></div>
+
+        <div class="footer">
+            SCCONECTA © 2026 - Todos os direitos reservados
+        </div>
+    </div>
+
+    <script>
+        // Pega o código de ativação da URL
+        // Formato: activate.html?code=ABC123
+        const urlParams = new URLSearchParams(window.location.search);
+        const activationCode = urlParams.get('code') || 'TESTE-REAL';
+        
+        // Exibe o código
+        document.getElementById('activationCode').textContent = activationCode;
+
+        // Detecta plataforma
+        function detectPlatform() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            }
+            
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'ios';
+            }
+            
+            return 'unknown';
+        }
+
+        // URLs das lojas
+        const storeUrls = {
+            android: 'https://play.google.com/store/apps/details?id=com.example.scconecta_app',
+            ios: 'https://apps.apple.com/app/scconecta/id123456789'
+        };
+
+        // Tenta abrir o app
+        function openApp() {
+            const platform = detectPlatform();
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('openAppBtn');
+            
+            // Desabilita botão
+            btn.disabled = true;
+            btn.textContent = 'Abrindo app...';
+            
+            // Mostra loading
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = '<span class="loading"></span>Tentando abrir o app SCCONECTA...';
+
+            // Deep link do app
+            // Formato: scconecta://activate?code=ABC123
+            const deepLink = `scconecta://activate?code=${activationCode}`;
+            
+            console.log('Tentando abrir:', deepLink);
+            
+            // Tenta abrir o app
+            window.location.href = deepLink;
+
+            // Aguarda 2.5 segundos
+            setTimeout(() => {
+                // Se ainda está na página, app não está instalado
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '⚠️ App SCCONECTA não está instalado';
+                
+                btn.disabled = false;
+                btn.textContent = '🚀 Instalar eSIM Agora';
+                
+                // Aguarda mais 1 segundo e redireciona para loja
+                setTimeout(() => {
+                    if (platform === 'android') {
+                        statusDiv.className = 'status info';
+                        statusDiv.innerHTML = '📱 Redirecionando para Google Play Store...';
+                        setTimeout(() => {
+                            window.location.href = storeUrls.android;
+                        }, 1500);
+                    } else if (platform === 'ios') {
+                        statusDiv.className = 'status info';
+                        statusDiv.innerHTML = '📱 Redirecionando para App Store...';
+                        setTimeout(() => {
+                            window.location.href = storeUrls.ios;
+                        }, 1500);
+                    } else {
+                        statusDiv.className = 'status info';
+                        statusDiv.innerHTML = '📱 Acesse este link no seu celular Android ou iOS';
+                    }
+                }, 1000);
+            }, 2500);
+        }
+
+        // Copia link de ativação
+        function copyLink() {
+            const link = window.location.href;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(link).then(() => {
+                    const statusDiv = document.getElementById('status');
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ Link copiado! Envie para seu celular via WhatsApp';
+                    
+                    setTimeout(() => {
+                        statusDiv.innerHTML = '';
+                    }, 3000);
+                });
+            } else {
+                // Fallback para navegadores antigos
+                const textarea = document.createElement('textarea');
+                textarea.value = link;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = '✅ Link copiado!';
+            }
+        }
+
+        // Mostra informações de debug no console
+        console.log('=== SCCONECTA Debug ===');
+        console.log('Código de Ativação:', activationCode);
+        console.log('Plataforma:', detectPlatform());
+        console.log('Deep Link:', `scconecta://activate?code=${activationCode}`);
+        console.log('URL Atual:', window.location.href);
+    </script>
+</body>
+</html>
