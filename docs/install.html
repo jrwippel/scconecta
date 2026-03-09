@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SC CONECTA - Instalar eSIM</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Instalar eSIM</title>
     <style>
         * {
             margin: 0;
@@ -15,8 +12,8 @@
         }
 
         body {
-            font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f7;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -26,72 +23,79 @@
 
         .container {
             background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
+            border-radius: 16px;
+            padding: 48px 32px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .icon {
+            font-size: 56px;
             text-align: center;
-        }
-
-        .logo {
-            width: 200px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-
-        .logo-text {
-            font-size: 48px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
-
-        .logo-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
+            color: #1d1d1f;
+            font-size: 32px;
             font-weight: 600;
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 30px;
+            color: #86868b;
+            font-size: 17px;
+            text-align: center;
+            margin-bottom: 40px;
             font-weight: 400;
         }
 
+        .info-card {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-card p {
+            color: #1d1d1f;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+
+        .info-card p:first-child {
+            margin-top: 0;
+        }
+
         .btn {
-            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            background: #0071e3;
             color: white;
             border: none;
-            border-radius: 16px;
-            padding: 20px 40px;
-            font-size: 20px;
-            font-weight: bold;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 17px;
+            font-weight: 500;
             cursor: pointer;
             width: 100%;
-            margin-top: 20px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(141, 187, 27, 0.4);
-            text-decoration: none;
-            display: block;
+            transition: all 0.2s;
+            text-align: center;
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(141, 187, 27, 0.6);
+            background: #0077ed;
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-            margin-top: 10px;
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #86868b;
+            cursor: not-allowed;
         }
 
         .status {
@@ -99,36 +103,39 @@
             padding: 16px;
             border-radius: 12px;
             font-size: 15px;
-            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
         }
 
         .status.info {
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 2px solid #90caf9;
+            background: #e8f4fd;
+            color: #0071e3;
         }
 
         .status.success {
             background: #e8f5e9;
-            color: #388e3c;
-            border: 2px solid #81c784;
+            color: #34c759;
         }
 
         .status.error {
-            background: #ffebee;
-            color: #d32f2f;
-            border: 2px solid #ef5350;
+            background: #fff3f3;
+            color: #ff3b30;
         }
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #8DBB1B;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 113, 227, 0.2);
+            border-top: 2px solid #0071e3;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
         }
 
         @keyframes spin {
@@ -136,246 +143,149 @@
             100% { transform: rotate(360deg); }
         }
 
-        .info-box {
-            background: #e8f5e9;
-            border: 2px solid #81c784;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 20px;
-            text-align: left;
+        .store-links {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #d2d2d7;
+            display: none;
         }
 
-        .info-box strong {
-            color: #2e7d32;
+        .store-links.show {
             display: block;
-            margin-bottom: 8px;
         }
 
-        .info-box p {
-            color: #2e7d32;
+        .store-links p {
+            color: #86868b;
             font-size: 14px;
-            line-height: 1.6;
-            margin: 5px 0;
+            text-align: center;
+            margin-bottom: 16px;
         }
 
         .store-buttons {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 12px;
         }
 
         .store-btn {
             flex: 1;
-            padding: 18px 24px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            gap: 8px;
+            transition: all 0.2s;
         }
 
         .store-btn.android {
-            background: #34A853;
+            background: #34c759;
             color: white;
         }
 
         .store-btn.android:hover {
-            background: #2d9248;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(52, 168, 83, 0.4);
+            background: #30b350;
         }
 
         .store-btn.ios {
-            background: #007AFF;
+            background: #0071e3;
             color: white;
         }
 
         .store-btn.ios:hover {
-            background: #0066dd;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
-        }
-
-        .store-icon {
-            font-size: 24px;
+            background: #0077ed;
         }
 
         .footer {
-            margin-top: 30px;
-            color: #999;
+            margin-top: 32px;
+            text-align: center;
+            color: #86868b;
             font-size: 13px;
-        }
-
-        #appNotInstalled {
-            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Logo SCCONECTA -->
-        <div class="logo-text">SC CONECTA</div>
-        <div class="logo-icon">🌍</div>
+        <div class="icon">📱</div>
         <h1>Instalar eSIM</h1>
-        <p class="subtitle">Conectando você ao mundo</p>
+        <p class="subtitle">Configure seu eSIM em segundos</p>
 
-        <div class="info-box">
-            <strong>✨ Instalação Automática</strong>
-            <p>• Clique no botão abaixo</p>
-            <p>• Seu eSIM será instalado automaticamente</p>
-            <p>• Siga as instruções no app</p>
+        <div class="info-card">
+            <p>• Instalação automática</p>
+            <p>• Sem configuração manual</p>
+            <p>• Ativação instantânea</p>
         </div>
 
         <button class="btn" id="installBtn" onclick="installESim()">
-            🚀 Instalar eSIM Agora
+            Instalar Agora
         </button>
 
-        <div id="status"></div>
+        <div id="status" class="status"></div>
 
-        <!-- Instruções para Android -->
-        <div id="androidInstructions" style="display: none;">
-            <div class="info-box" style="background: #e3f2fd; border-color: #90caf9; margin-top: 20px;">
-                <strong style="color: #1976d2;">📱 Abrir com o App</strong>
-                <p style="color: #1565c0;">Se o app não abriu automaticamente:</p>
-                <p style="color: #1565c0;">1. Toque em "Abrir com..."</p>
-                <p style="color: #1565c0;">2. Selecione "SC CONECTA"</p>
-            </div>
-        </div>
-
-        <div id="appNotInstalled">
-            <div class="info-box" style="background: #fff3cd; border-color: #ffc107;">
-                <strong style="color: #856404;">📱 App não instalado</strong>
-                <p style="color: #856404;">Baixe o app SC CONECTA primeiro:</p>
-            </div>
-            
+        <div id="storeLinks" class="store-links">
+            <p>App não instalado? Baixe primeiro:</p>
             <div class="store-buttons">
                 <a href="https://play.google.com/store/apps/details?id=com.example.scconecta_app" 
                    class="store-btn android" target="_blank">
-                    <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
-                    </svg>
-                    <span>Google Play</span>
+                    Android
                 </a>
                 <a href="https://apps.apple.com/app/scconecta/id123456789" 
                    class="store-btn ios" target="_blank">
-                    <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"/>
-                    </svg>
-                    <span>App Store</span>
+                    iOS
                 </a>
             </div>
         </div>
 
         <div class="footer">
-            SC CONECTA © 2026 - Conectando você ao mundo 🌍
+            Instalação segura e criptografada
         </div>
     </div>
 
     <script>
-        // Pega a LPA String da URL
         const urlParams = new URLSearchParams(window.location.search);
         const lpaString = urlParams.get('lpa');
 
-        console.log('=== SCCONECTA eSIM ===');
-        console.log('LPA String:', lpaString);
-
         if (!lpaString) {
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').innerHTML = '⚠️ Link inválido. LPA String não encontrada.';
+            showStatus('Link inválido', 'error');
             document.getElementById('installBtn').disabled = true;
         }
 
-        // Detecta plataforma
         function detectPlatform() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            
-            if (/android/i.test(userAgent)) {
-                return 'android';
-            }
-            
-            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-                return 'ios';
-            }
-            
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            if (/android/i.test(ua)) return 'android';
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
             return 'unknown';
         }
 
-        // Instala eSIM
-        function installESim() {
-            if (!lpaString) {
-                alert('LPA String não encontrada no link!');
-                return;
-            }
-
+        function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
-            const btn = document.getElementById('installBtn');
-            const platform = detectPlatform();
-            
-            // Desabilita botão
-            btn.disabled = true;
-            btn.textContent = '⏳ Abrindo app...';
-            
-            // Mostra loading
-            statusDiv.className = 'status info';
-            statusDiv.innerHTML = '<span class="loading"></span>Abrindo app SC CONECTA...';
-
-            // Deep link com LPA String
-            const deepLink = `scconecta://install?lpa=${encodeURIComponent(lpaString)}`;
-            
-            console.log('Deep Link:', deepLink);
-            console.log('Platform:', platform);
-            
-            // Para Android, cria um link invisível e clica nele
-            // Isso permite que o Android mostre o "Abrir com..." se necessário
-            if (platform === 'android') {
-                const link = document.createElement('a');
-                link.href = deepLink;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Mostra instruções para Android
-                setTimeout(() => {
-                    document.getElementById('androidInstructions').style.display = 'block';
-                    statusDiv.className = 'status success';
-                    statusDiv.innerHTML = '✅ Clique em "Abrir com SC CONECTA" se aparecer a opção';
-                }, 1000);
-            } else {
-                // iOS e outros
-                window.location.href = deepLink;
-            }
-
-            // Aguarda 3 segundos para verificar
-            setTimeout(() => {
-                // Verifica se ainda está na página
-                if (document.hasFocus()) {
-                    // Ainda está na página - app pode não estar instalado
-                    statusDiv.className = 'status error';
-                    statusDiv.innerHTML = '⚠️ App SC CONECTA não está instalado';
-                    
-                    btn.disabled = false;
-                    btn.textContent = '🚀 Instalar eSIM Agora';
-                    
-                    // Esconde instruções Android
-                    document.getElementById('androidInstructions').style.display = 'none';
-                    
-                    // Mostra botões de download
-                    document.getElementById('appNotInstalled').style.display = 'block';
-                } else {
-                    // Perdeu o foco - app provavelmente abriu
-                    console.log('✅ App abriu (página perdeu foco)');
-                }
-            }, 3000);
+            statusDiv.className = `status ${type} show`;
+            statusDiv.innerHTML = message;
         }
 
-        // Auto-tenta abrir o app após 1 segundo (opcional)
-        // setTimeout(installESim, 1000);
+        function installESim() {
+            if (!lpaString) return;
+
+            const btn = document.getElementById('installBtn');
+            btn.disabled = true;
+            btn.textContent = 'Abrindo...';
+            
+            showStatus('<span class="loading"></span>Abrindo app...', 'info');
+
+            const deepLink = `scconecta://install?lpa=${encodeURIComponent(lpaString)}`;
+            window.location.href = deepLink;
+
+            setTimeout(() => {
+                if (document.hasFocus()) {
+                    showStatus('App não encontrado', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Instalar Agora';
+                    document.getElementById('storeLinks').classList.add('show');
+                }
+            }, 2500);
+        }
     </script>
 </body>
 </html>

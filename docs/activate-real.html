@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCCONECTA - Seu eSIM está Pronto!</title>
+    <title>Ativar eSIM</title>
     <style>
         * {
             margin: 0;
@@ -12,8 +12,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f7;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -23,96 +23,95 @@
 
         .container {
             background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
+            border-radius: 16px;
+            padding: 48px 32px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .icon {
+            font-size: 56px;
             text-align: center;
-        }
-
-        .logo {
-            font-size: 64px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            margin-bottom: 24px;
         }
 
         h1 {
-            color: #333;
+            color: #1d1d1f;
             font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: bold;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 18px;
-            margin-bottom: 30px;
+            color: #86868b;
+            font-size: 17px;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 400;
         }
 
-        .card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            text-align: left;
-            border: 2px solid #dee2e6;
+        .info-card {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
 
-        .card-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 18px;
-        }
-
-        .card-content {
-            color: #666;
+        .info-card p {
+            color: #1d1d1f;
             font-size: 15px;
-            line-height: 1.8;
+            line-height: 1.6;
+            margin: 8px 0;
         }
 
-        .highlight {
-            background: #8DBB1B;
+        .info-card p:first-child {
+            margin-top: 0;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .badge {
+            background: #0071e3;
             color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 16px;
-            margin-top: 10px;
-            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .btn {
-            background: linear-gradient(135deg, #8DBB1B 0%, #6A9515 100%);
+            background: #0071e3;
             color: white;
             border: none;
-            border-radius: 16px;
-            padding: 20px 40px;
-            font-size: 20px;
-            font-weight: bold;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 17px;
+            font-weight: 500;
             cursor: pointer;
             width: 100%;
-            margin-top: 20px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(141, 187, 27, 0.4);
+            transition: all 0.2s;
+            text-align: center;
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(141, 187, 27, 0.6);
+            background: #0077ed;
         }
 
         .btn:active {
-            transform: translateY(0);
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #86868b;
+            cursor: not-allowed;
         }
 
         .status {
@@ -120,36 +119,39 @@
             padding: 16px;
             border-radius: 12px;
             font-size: 15px;
-            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
         }
 
         .status.info {
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 2px solid #90caf9;
+            background: #e8f4fd;
+            color: #0071e3;
         }
 
         .status.success {
             background: #e8f5e9;
-            color: #388e3c;
-            border: 2px solid #81c784;
+            color: #34c759;
         }
 
         .status.error {
-            background: #ffebee;
-            color: #d32f2f;
-            border: 2px solid #ef5350;
+            background: #fff3f3;
+            color: #ff3b30;
         }
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #8DBB1B;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 113, 227, 0.2);
+            border-top: 2px solid #0071e3;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
         }
 
         @keyframes spin {
@@ -157,183 +159,154 @@
             100% { transform: rotate(360deg); }
         }
 
-        .footer {
-            margin-top: 30px;
-            color: #999;
-            font-size: 13px;
+        .store-links {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #d2d2d7;
+            display: none;
         }
 
-        .badge {
-            display: inline-block;
-            background: #8DBB1B;
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            margin: 5px;
-        }
-
-        .info-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        .info-box strong {
-            color: #856404;
+        .store-links.show {
             display: block;
-            margin-bottom: 8px;
         }
 
-        .info-box p {
-            color: #856404;
+        .store-links p {
+            color: #86868b;
             font-size: 14px;
-            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .store-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .store-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .store-btn.android {
+            background: #34c759;
+            color: white;
+        }
+
+        .store-btn.android:hover {
+            background: #30b350;
+        }
+
+        .store-btn.ios {
+            background: #0071e3;
+            color: white;
+        }
+
+        .store-btn.ios:hover {
+            background: #0077ed;
+        }
+
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            color: #86868b;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🌍</div>
-        <h1>Seu eSIM está Pronto!</h1>
-        <p class="subtitle">Instalação automática em segundos</p>
+        <div class="icon">✓</div>
+        <h1>Seu eSIM está pronto</h1>
+        <p class="subtitle">Instalação automática</p>
 
-        <div class="card">
-            <div class="card-title">
-                <span>📱</span>
-                <span>Plano Contratado</span>
-            </div>
-            <div class="card-content">
-                <strong>eSIM Internacional</strong><br>
-                <div class="badge">DADOS ILIMITADOS</div>
-                <div class="badge">30 DIAS</div>
-                <div class="badge">MÚLTIPLOS PAÍSES</div>
+        <div class="info-card">
+            <p><strong>Plano Internacional</strong></p>
+            <div class="badge-container">
+                <span class="badge">Dados Ilimitados</span>
+                <span class="badge">30 Dias</span>
+                <span class="badge">Múltiplos Países</span>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">
-                <span>✨</span>
-                <span>Instalação Automática</span>
-            </div>
-            <div class="card-content">
-                Clique no botão abaixo e seu eSIM será instalado automaticamente no seu celular em segundos!
-            </div>
+        <div class="info-card">
+            <p>• Instalação em segundos</p>
+            <p>• Ativação automática</p>
+            <p>• Sem configuração manual</p>
         </div>
 
-        <button class="btn" id="openAppBtn" onclick="openApp()">
-            🚀 Instalar Meu eSIM Agora
+        <button class="btn" id="activateBtn" onclick="activateESim()">
+            Instalar Agora
         </button>
 
-        <div id="status"></div>
+        <div id="status" class="status"></div>
 
-        <div class="info-box">
-            <strong>ℹ️ Como funciona:</strong>
-            <p>
-                1. Clique no botão acima<br>
-                2. O app SCCONECTA será aberto<br>
-                3. Seu eSIM será instalado automaticamente<br>
-                4. Siga as instruções no app
-            </p>
+        <div id="storeLinks" class="store-links">
+            <p>App não instalado? Baixe primeiro:</p>
+            <div class="store-buttons">
+                <a href="https://play.google.com/store/apps/details?id=com.example.scconecta_app" 
+                   class="store-btn android" target="_blank">
+                    Android
+                </a>
+                <a href="https://apps.apple.com/app/scconecta/id123456789" 
+                   class="store-btn ios" target="_blank">
+                    iOS
+                </a>
+            </div>
         </div>
 
         <div class="footer">
-            SCCONECTA © 2026 - Conectando você ao mundo 🌍
+            Conexão segura e criptografada
         </div>
     </div>
 
     <script>
-        // LPA String REAL embutida na página
-        // Esta é a LPA que você converteu do QR Code
         const LPA_STRING = 'LPA:1$RSP-4040.IDEMIA.IO$QZTI5-CGVFT-E0ISM-5EOLW';
         const ACTIVATION_CODE = 'REAL-' + Date.now().toString().slice(-6);
 
-        console.log('=== SCCONECTA eSIM ===');
-        console.log('LPA String:', LPA_STRING);
-        console.log('Código de Ativação:', ACTIVATION_CODE);
-
-        // Detecta plataforma
         function detectPlatform() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            
-            if (/android/i.test(userAgent)) {
-                return 'android';
-            }
-            
-            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-                return 'ios';
-            }
-            
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            if (/android/i.test(ua)) return 'android';
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
             return 'unknown';
         }
 
-        // URLs das lojas
-        const storeUrls = {
-            android: 'https://play.google.com/store/apps/details?id=com.example.scconecta_app',
-            ios: 'https://apps.apple.com/app/scconecta/id123456789'
-        };
-
-        // Tenta abrir o app
-        function openApp() {
-            const platform = detectPlatform();
+        function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
-            const btn = document.getElementById('openAppBtn');
-            
-            // Desabilita botão
-            btn.disabled = true;
-            btn.textContent = '⏳ Abrindo app...';
-            
-            // Mostra loading
-            statusDiv.className = 'status info';
-            statusDiv.innerHTML = '<span class="loading"></span>Abrindo app SCCONECTA...';
+            statusDiv.className = `status ${type} show`;
+            statusDiv.innerHTML = message;
+        }
 
-            // Deep link com código de ativação
-            // O app vai receber este código e buscar a LPA na API (ou mock)
+        function activateESim() {
+            const btn = document.getElementById('activateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Abrindo...';
+            
+            showStatus('<span class="loading"></span>Abrindo app...', 'info');
+
             const deepLink = `scconecta://activate?code=${ACTIVATION_CODE}`;
-            
-            console.log('Deep Link:', deepLink);
-            
-            // Tenta abrir o app
             window.location.href = deepLink;
 
-            // Aguarda 2.5 segundos
             setTimeout(() => {
-                // Se ainda está na página, app não está instalado
-                statusDiv.className = 'status error';
-                statusDiv.innerHTML = '⚠️ App SCCONECTA não está instalado';
-                
-                btn.disabled = false;
-                btn.textContent = '🚀 Instalar Meu eSIM Agora';
-                
-                // Aguarda mais 1 segundo e redireciona para loja
-                setTimeout(() => {
-                    if (platform === 'android') {
-                        statusDiv.className = 'status info';
-                        statusDiv.innerHTML = '📱 Redirecionando para Google Play Store...';
-                        setTimeout(() => {
-                            window.location.href = storeUrls.android;
-                        }, 1500);
-                    } else if (platform === 'ios') {
-                        statusDiv.className = 'status info';
-                        statusDiv.innerHTML = '📱 Redirecionando para App Store...';
-                        setTimeout(() => {
-                            window.location.href = storeUrls.ios;
-                        }, 1500);
-                    } else {
-                        statusDiv.className = 'status info';
-                        statusDiv.innerHTML = '📱 Por favor, acesse este link no seu celular Android ou iOS';
-                    }
-                }, 1000);
+                if (document.hasFocus()) {
+                    showStatus('App não encontrado', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Instalar Agora';
+                    document.getElementById('storeLinks').classList.add('show');
+                }
             }, 2500);
         }
 
-        // Mostra informações no console para debug
-        console.log('Plataforma detectada:', detectPlatform());
-        console.log('URL atual:', window.location.href);
+        console.log('LPA:', LPA_STRING);
+        console.log('Code:', ACTIVATION_CODE);
     </script>
 </body>
 </html>
