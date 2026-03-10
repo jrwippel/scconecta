@@ -38,9 +38,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
             margin: 0 auto 32px;
             box-shadow: 0 8px 24px rgba(141, 187, 27, 0.3);
+        }
+
+        .icon svg {
+            width: 44px;
+            height: 44px;
+            fill: white;
         }
 
         h1 {
@@ -303,7 +308,11 @@
 </head>
 <body>
     <div class="container">
-        <div class="icon">✓</div>
+        <div class="icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.89,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3M19,5V19H5V5H19M7,7V9H9V7H7M11,7V9H17V7H11M7,11V13H11V11H7M13,11V13H17V11H13M7,15V17H9V15H7M11,15V17H17V15H11Z"/>
+            </svg>
+        </div>
         <h1>Seu eSIM está pronto</h1>
         <p class="subtitle">Instalação automática em segundos</p>
 
